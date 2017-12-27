@@ -197,27 +197,25 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 		if ( $current_shortcode ) {
 
 			$shortcodes[] = sprintf(
-				'<span style="%s">%s</span>',
-				array_key_exists( $current_shortcode, $registered_shortcodes ) ? '' : 'color: red;',
-				esc_html( '[' . $current_shortcode . ']' )
+				'<a href="%s" style="%s">[%s]</a>',
+				esc_url( add_query_arg( 'filter_shortcode', $current_shortcode ) ),
+				array_key_exists( $current_shortcode, $registered_shortcodes ) ? 'color: inherit;' : 'color: red;',
+				esc_html( $current_shortcode )
 			);
 
-		} else {
+		} else if ( isset( $item['shortcodes'] ) && is_array( $item['shortcodes'] ) ) {
 
-			if ( isset( $item['shortcodes'] ) && is_array( $item['shortcodes'] ) ) {
-				asort( $item['shortcodes'] );
-				foreach ( array_unique( $item['shortcodes'] ) as $shortcode ) {
+			asort( $item['shortcodes'] );
 
-					if ( array_key_exists( $shortcode, $registered_shortcodes ) ) {
-						$shortcodes[] = esc_html( '[' . $shortcode . ']' );
-					} else {
-						$shortcodes[] = sprintf(
-							'<a href="%s" style="color: red;">[%s]</a>',
-							esc_url( add_query_arg( 'filter_shortcode', $shortcode ) ),
-							esc_html( $shortcode )
-						);
-					}
-				}
+			foreach ( array_unique( $item['shortcodes'] ) as $shortcode ) {
+
+				$shortcodes[] = sprintf(
+					'<a href="%s" style="%s">[%s]</a>',
+					esc_url( add_query_arg( 'filter_shortcode', $shortcode ) ),
+					array_key_exists( $shortcode, $registered_shortcodes ) ? 'color: inherit;' : 'color: red;',
+					esc_html( $shortcode )
+				);
+
 			}
 
 		}
