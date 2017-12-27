@@ -69,7 +69,7 @@ class ShortcodeListTable extends \WP_List_Table {
 
 		$this->set_pagination_args( array(
 			'per_page'    => $per_page,
-			'total_items' => count( $this->collection ),
+			'total_items' => count( $items ),
 		) );
 
 		$this->items = array_slice( $items, $offset, $per_page );
