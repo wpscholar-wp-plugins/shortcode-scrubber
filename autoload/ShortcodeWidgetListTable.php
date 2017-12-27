@@ -155,16 +155,28 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 	 */
 	protected function column_title( $item ) {
 
+		$actions = [];
+
 		$edit_link = sprintf(
-			'<a class="row-title" href="%s">%s<span class="in-widget-title">%s</span></a>',
-			esc_url( $item['edit_link'] ),
+			'%s<span class="in-widget-title">%s</span>',
 			esc_html( $item['widget_label'] ),
 			empty( $item['title'] ) ? '' : esc_html( ': ' . $item['title'] )
 		);
 
-		$actions = array(
-			'edit' => '<a href="' . esc_url( $item['edit_link'] ) . '">' . esc_html__( 'Edit', 'shortcode-scrubber' ) . '</a>',
-		);
+		if ( current_user_can( 'edit_theme_options' ) ) {
+
+			$edit_link = sprintf(
+				'<a class="row-title" href="%s">%s</a>',
+				esc_url( $item['edit_link'] ),
+				$edit_link
+			);
+
+			$actions['edit'] = sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( $item['edit_link'] ),
+				esc_html__( 'Edit', 'shortcode-scrubber' )
+			);
+		}
 
 		return $edit_link . $this->row_actions( $actions );
 	}
@@ -179,21 +191,34 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 	protected function column_shortcodes( $item ) {
 
 		$shortcodes = [];
+		$registered_shortcodes = array_flip( array_keys( get_shortcodes() ) );
 		$current_shortcode = filter_input( INPUT_GET, 'filter_shortcode' );
 
 		if ( $current_shortcode ) {
 
-			$shortcodes[] = '[' . $current_shortcode . ']';
+			$shortcodes[] = sprintf(
+				'<span style="%s">%s</span>',
+				array_key_exists( $current_shortcode, $registered_shortcodes ) ? '' : 'color: red;',
+				esc_html( '[' . $current_shortcode . ']' )
+			);
 
 		} else {
 
 			if ( isset( $item['shortcodes'] ) && is_array( $item['shortcodes'] ) ) {
+				asort( $item['shortcodes'] );
 				foreach ( array_unique( $item['shortcodes'] ) as $shortcode ) {
-					$shortcodes[] = esc_html( '[' . $shortcode . ']' );
+
+					if ( array_key_exists( $shortcode, $registered_shortcodes ) ) {
+						$shortcodes[] = esc_html( '[' . $shortcode . ']' );
+					} else {
+						$shortcodes[] = sprintf(
+							'<a href="%s" style="color: red;">[%s]</a>',
+							esc_url( add_query_arg( 'filter_shortcode', $shortcode ) ),
+							esc_html( $shortcode )
+						);
+					}
 				}
 			}
-
-			asort( $shortcodes );
 
 		}
 
@@ -224,63 +249,65 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 	 */
 	protected function extra_tablenav( $which ) {
 
-		if ( 'top' !== $which ) {
-			return;
+		if ( 'top' === $which ) {
+
+			$filters = $this->get_filters();
+
+			?>
+            <div class="alignleft actions">
+                <form method="get">
+
+                    <input type="hidden" name="page"
+                           value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
+
+                    <label for="filter_widget_area" class="screen-reader-text">
+						<?php esc_html_e( 'Filter By Widget Area', 'shortcode-scrubber' ) ?>
+                    </label>
+                    <select id="filter_widget_area" name="filter_widget_area">
+                        <option value=""><?php esc_html_e( 'Filter By Widget Area', 'shortcode-scrubber' ) ?></option>
+						<?php foreach ( get_widget_areas() as $slug => $label ) : ?>
+                            <option value="<?php echo esc_html( $slug ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_widget_area' ), $slug ); ?>>
+								<?php echo esc_html( $label ); ?>
+                            </option>
+						<?php endforeach; ?>
+                    </select>
+
+                    <label for="filter_widget_type" class="screen-reader-text">
+						<?php esc_html_e( 'Filter By Widget Type', 'shortcode-scrubber' ) ?>
+                    </label>
+                    <select id="filter_widget_type" name="filter_widget_type">
+                        <option value=""><?php esc_html_e( 'Filter By Widget Type', 'shortcode-scrubber' ) ?></option>
+						<?php foreach ( get_widget_types() as $slug => $label ) : ?>
+                            <option value="<?php echo esc_html( $slug ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_widget_type' ), $slug ); ?>>
+								<?php echo esc_html( $label ); ?>
+                            </option>
+						<?php endforeach; ?>
+                    </select>
+
+                    <label for="filter_shortcode" class="screen-reader-text">
+						<?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ) ?>
+                    </label>
+                    <select id="filter_shortcode" name="filter_shortcode">
+                        <option value=""><?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?></option>
+						<?php foreach ( array_keys( get_shortcodes() ) as $shortcode ) : ?>
+                            <option value="<?php echo esc_html( $shortcode ); ?>" <?php selected( $filters['shortcode'], $shortcode ); ?> >
+                                [<?php echo esc_html( $shortcode ); ?>]
+                            </option>
+						<?php endforeach; ?>
+                    </select>
+
+                    <input type="submit"
+                           id="post-query-submit"
+                           class="button"
+                           value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
+
+                </form>
+            </div>
+			<?php
+		} else {
+			printf( '<span>*%s</span>', esc_html__( 'Shortcodes displayed in red are not registered in WordPress.', 'shortcode-scrubber' ) );
 		}
 
-		$filters = $this->get_filters();
-
-		?>
-        <div class="alignleft actions">
-            <form method="get">
-
-                <input type="hidden" name="page"
-                       value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
-
-                <label for="filter_widget_area" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Widget Area', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_widget_area" name="filter_widget_area">
-                    <option value=""><?php esc_html_e( 'Filter By Widget Area', 'shortcode-scrubber' ) ?></option>
-					<?php foreach ( get_widget_areas() as $slug => $label ) : ?>
-                        <option value="<?php echo esc_html( $slug ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_widget_area' ), $slug ); ?>>
-							<?php echo esc_html( $label ); ?>
-                        </option>
-					<?php endforeach; ?>
-                </select>
-
-                <label for="filter_widget_type" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Widget Type', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_widget_type" name="filter_widget_type">
-                    <option value=""><?php esc_html_e( 'Filter By Widget Type', 'shortcode-scrubber' ) ?></option>
-					<?php foreach ( get_widget_types() as $slug => $label ) : ?>
-                        <option value="<?php echo esc_html( $slug ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_widget_type' ), $slug ); ?>>
-							<?php echo esc_html( $label ); ?>
-                        </option>
-					<?php endforeach; ?>
-                </select>
-
-                <label for="filter_shortcode" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_shortcode" name="filter_shortcode">
-                    <option value=""><?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?></option>
-					<?php foreach ( array_keys( get_shortcodes() ) as $shortcode ) : ?>
-                        <option value="<?php echo esc_html( $shortcode ); ?>" <?php selected( $filters['shortcode'], $shortcode ); ?> >
-                            [<?php echo esc_html( $shortcode ); ?>]
-                        </option>
-					<?php endforeach; ?>
-                </select>
-
-                <input type="submit"
-                       id="post-query-submit"
-                       class="button"
-                       value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
-
-            </form>
-        </div>
-		<?php
 	}
 
 	/**

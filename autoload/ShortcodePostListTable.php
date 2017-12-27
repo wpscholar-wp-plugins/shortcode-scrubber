@@ -57,7 +57,7 @@ class ShortcodePostListTable extends \WP_List_Table {
 			$this->items[] = array(
 				'date'       => $post,
 				'id'         => $post->ID,
-				'shortcodes' => find_active_shortcodes_in_content( $post->post_content ),
+				'shortcodes' => find_shortcodes_in_content( $post->post_content ),
 				'title'      => get_the_title( $post ),
 				'post_type'  => get_post_type_object( $post->post_type )->labels->singular_name,
 			);
@@ -171,12 +171,15 @@ class ShortcodePostListTable extends \WP_List_Table {
 	 */
 	protected function column_title( $item ) {
 
-		$edit_link = '<a class="row-title" href="' . get_edit_post_link( $item['id'] ) . '">' . esc_html( $item['title'] ) . '</a>';
+		$actions = [];
+		$edit_link = esc_html( $item['title'] );
 
-		$actions = array(
-			'edit' => '<a href="' . get_edit_post_link( $item['id'] ) . '">' . esc_html__( 'Edit', 'shortcode-scrubber' ) . '</a>',
-			'view' => '<a href="' . get_permalink( $item['id'] ) . '">' . esc_html__( 'View', 'shortcode-scrubber' ) . '</a>'
-		);
+		if ( current_user_can( 'edit_post', $item['id'] ) ) {
+			$edit_link = '<a class="row-title" href="' . get_edit_post_link( $item['id'] ) . '">' . esc_html( $item['title'] ) . '</a>';
+			$actions['edit'] = '<a href="' . get_edit_post_link( $item['id'] ) . '">' . esc_html__( 'Edit', 'shortcode-scrubber' ) . '</a>';
+		}
+
+		$actions['view'] = '<a href="' . get_permalink( $item['id'] ) . '">' . esc_html__( 'View', 'shortcode-scrubber' ) . '</a>';
 
 		return $edit_link . $this->row_actions( $actions );
 	}
@@ -191,21 +194,34 @@ class ShortcodePostListTable extends \WP_List_Table {
 	protected function column_shortcodes( $item ) {
 
 		$shortcodes = [];
+		$registered_shortcodes = array_flip( array_keys( get_shortcodes() ) );
 		$current_shortcode = filter_input( INPUT_GET, 'filter_shortcode' );
 
 		if ( $current_shortcode ) {
 
-			$shortcodes[] = '[' . $current_shortcode . ']';
+			$shortcodes[] = sprintf(
+				'<span style="%s">%s</span>',
+				array_key_exists( $current_shortcode, $registered_shortcodes ) ? '' : 'color: red;',
+				esc_html( '[' . $current_shortcode . ']' )
+			);
 
 		} else {
 
 			if ( isset( $item['shortcodes'] ) && is_array( $item['shortcodes'] ) ) {
+				asort( $item['shortcodes'] );
 				foreach ( array_unique( $item['shortcodes'] ) as $shortcode ) {
-					$shortcodes[] = esc_html( '[' . $shortcode . ']' );
+
+					if ( array_key_exists( $shortcode, $registered_shortcodes ) ) {
+						$shortcodes[] = esc_html( '[' . $shortcode . ']' );
+					} else {
+						$shortcodes[] = sprintf(
+							'<a href="%s" style="color: red;">[%s]</a>',
+							esc_url( add_query_arg( 'filter_shortcode', $shortcode ) ),
+							esc_html( $shortcode )
+						);
+					}
 				}
 			}
-
-			asort( $shortcodes );
 
 		}
 
@@ -236,55 +252,56 @@ class ShortcodePostListTable extends \WP_List_Table {
 	 */
 	protected function extra_tablenav( $which ) {
 
-		if ( 'top' !== $which ) {
-			return;
-		}
+		if ( 'top' === $which ) {
 
-		$filters = $this->get_filters();
-		$post_types = $this->get_post_types();
+			$filters = $this->get_filters();
+			$post_types = $this->get_post_types();
 
-		?>
-        <div class="alignleft actions">
-            <form method="get">
+			?>
+            <div class="alignleft actions">
+                <form method="get">
 
-                <input type="hidden" name="page"
-                       value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
+                    <input type="hidden" name="page"
+                           value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
 
-                <label for="filter_post_type" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Post Type', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_post_type" name="filter_post_type">
-                    <option value=""><?php esc_html_e( 'Filter By Post Type', 'shortcode-scrubber' ) ?></option>
-					<?php foreach ( $post_types as $post_type ) : ?>
-						<?php $post_type_object = get_post_type_object( $post_type ); ?>
-						<?php if ( $post_type_object && is_object( $post_type_object ) ): ?>
-                            <option value="<?php echo esc_html( $post_type_object->name ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_post_type' ), $post_type_object->name ); ?>>
-								<?php echo esc_html( $post_type_object->labels->singular_name ); ?>
+                    <label for="filter_post_type" class="screen-reader-text">
+						<?php esc_html_e( 'Filter By Post Type', 'shortcode-scrubber' ) ?>
+                    </label>
+                    <select id="filter_post_type" name="filter_post_type">
+                        <option value=""><?php esc_html_e( 'Filter By Post Type', 'shortcode-scrubber' ) ?></option>
+						<?php foreach ( $post_types as $post_type ) : ?>
+							<?php $post_type_object = get_post_type_object( $post_type ); ?>
+							<?php if ( $post_type_object && is_object( $post_type_object ) ): ?>
+                                <option value="<?php echo esc_html( $post_type_object->name ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_post_type' ), $post_type_object->name ); ?>>
+									<?php echo esc_html( $post_type_object->labels->singular_name ); ?>
+                                </option>
+							<?php endif; ?>
+						<?php endforeach; ?>
+                    </select>
+
+                    <label for="filter_shortcode" class="screen-reader-text">
+						<?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ) ?>
+                    </label>
+                    <select id="filter_shortcode" name="filter_shortcode">
+                        <option value=""><?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?></option>
+						<?php foreach ( array_keys( get_shortcodes() ) as $shortcode ) : ?>
+                            <option value="<?php echo esc_html( $shortcode ); ?>" <?php selected( $filters['shortcode'], $shortcode ); ?> >
+                                [<?php echo esc_html( $shortcode ); ?>]
                             </option>
-						<?php endif; ?>
-					<?php endforeach; ?>
-                </select>
+						<?php endforeach; ?>
+                    </select>
 
-                <label for="filter_shortcode" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_shortcode" name="filter_shortcode">
-                    <option value=""><?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?></option>
-					<?php foreach ( array_keys( get_shortcodes() ) as $shortcode ) : ?>
-                        <option value="<?php echo esc_html( $shortcode ); ?>" <?php selected( $filters['shortcode'], $shortcode ); ?> >
-                            [<?php echo esc_html( $shortcode ); ?>]
-                        </option>
-					<?php endforeach; ?>
-                </select>
+                    <input type="submit"
+                           id="post-query-submit"
+                           class="button"
+                           value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
 
-                <input type="submit"
-                       id="post-query-submit"
-                       class="button"
-                       value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
-
-            </form>
-        </div>
-		<?php
+                </form>
+            </div>
+			<?php
+		} else {
+			printf( '<span>*%s</span>', esc_html__( 'Shortcodes displayed in red are not registered in WordPress.', 'shortcode-scrubber' ) );
+		}
 	}
 
 	/**
@@ -315,14 +332,12 @@ class ShortcodePostListTable extends \WP_List_Table {
 	 */
 	public function get_post_types() {
 
-		$post_types = get_post_types_by_support( 'editor' );
+		$post_types = wp_filter_object_list(
+			array_map( 'get_post_type_object', get_post_types_by_support( 'editor' ) ),
+			[ 'public' => true ]
+		);
 
-		$key = array_search( 'nav_menu_item', $post_types, true );
-		if ( false !== $key ) {
-			unset( $post_types[ $key ] );
-		}
-
-		return $post_types;
+		return wp_list_pluck( $post_types, 'name' );
 	}
 
 }

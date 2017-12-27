@@ -32,6 +32,28 @@ function do_shortcodes( $content, array $shortcodes ) {
 	return $content;
 }
 
+
+/**
+ * Find shortcodes in a block of content.
+ *
+ * @param string $content
+ * @param array $shortcodes
+ *
+ * @return array
+ */
+function find_shortcodes_in_content( $content, array $shortcodes = [] ) {
+	$shortcodes_found = array();
+	preg_match_all( '/\[([^\/]*?)(\]|\s)/', $content, $located );
+	if ( ! empty( $located[1] ) && is_array( $located[1] ) ) {
+		$found = array_filter( array_unique( $located[1] ) );
+		$shortcodes_found = $shortcodes ? array_filter( $found, function ( $shortcode ) use ( $shortcodes ) {
+			return in_array( $shortcode, $shortcodes, true );
+		} ) : $found;
+	}
+
+	return $shortcodes_found;
+}
+
 /**
  * Find the active shortcodes in a block of content.
  *
@@ -42,14 +64,15 @@ function do_shortcodes( $content, array $shortcodes ) {
  */
 function find_active_shortcodes_in_content( $content, array $shortcodes = [] ) {
 	$shortcodes_found = array();
-	if ( empty( $shortcodes ) ) {
-		$shortcodes = null;
-	}
-	preg_match_all( '/' . get_shortcode_regex( $shortcodes ) . '/', $content, $located );
-	if ( ! empty( $located[2] ) && is_array( $located[2] ) ) {
-		foreach ( $located[2] as $shortcode_tag ) {
-			$shortcodes_found[] = $shortcode_tag;
+	preg_match_all( '/\[([^\/]*?)(\]|\s)/', $content, $located );
+	if ( ! empty( $located[1] ) && is_array( $located[1] ) ) {
+		$active_shortcodes = get_shortcodes();
+		if ( ! empty( $shortcodes ) ) {
+			$active_shortcodes = array_flip( array_intersect( array_keys( $active_shortcodes ), $shortcodes ) );
 		}
+		$shortcodes_found = array_filter( array_unique( $located[1] ), function ( $shortcode_tag ) use ( $active_shortcodes ) {
+			return array_key_exists( $shortcode_tag, $active_shortcodes );
+		} );
 	}
 
 	return $shortcodes_found;
@@ -71,43 +94,45 @@ function find_widgets_containing_shortcodes( array $shortcodes = [] ) {
 	$widget_classes = array_flip( wp_list_pluck( $wp_widget_factory->widgets, 'id_base' ) );
 
 	foreach ( wp_get_sidebars_widgets() as $sidebar_id => $widget_ids ) {
-		foreach ( $widget_ids as $widget_id ) {
-			preg_match( '#(.*)-(\d)*$#', $widget_id, $matches );
-			if ( ! empty( $matches[1] ) && ! empty( $matches[2] ) ) {
-				$widget_slug = $matches[1];
-				$widget_key = $matches[2];
-				$widgets = get_option( "widget_{$widget_slug}" );
-				if ( isset( $widgets[ $widget_key ] ) ) {
-					$widget_data_string = wp_json_encode( $widgets[ $widget_key ] );
-					$active_shortcodes = find_active_shortcodes_in_content( $widget_data_string, $shortcodes );
-					if ( count( $active_shortcodes ) ) {
+		if ( is_array( $widget_ids ) ) {
+			foreach ( $widget_ids as $widget_id ) {
+				preg_match( '#(.*)-(\d)*$#', $widget_id, $matches );
+				if ( ! empty( $matches[1] ) && ! empty( $matches[2] ) ) {
+					$widget_slug = $matches[1];
+					$widget_key = $matches[2];
+					$widgets = get_option( "widget_{$widget_slug}" );
+					if ( isset( $widgets[ $widget_key ] ) ) {
+						$widget_data_string = wp_json_encode( $widgets[ $widget_key ] );
+						$active_shortcodes = find_shortcodes_in_content( $widget_data_string, $shortcodes );
+						if ( count( $active_shortcodes ) ) {
 
-						$sidebar_label = __( 'Inactive Widgets', 'shortcode-scrubber' );
-						if ( isset( $wp_registered_sidebars[ $sidebar_id ] ) ) {
-							$sidebar_label = $wp_registered_sidebars[ $sidebar_id ]['name'];
+							$sidebar_label = __( 'Inactive Widgets', 'shortcode-scrubber' );
+							if ( isset( $wp_registered_sidebars[ $sidebar_id ] ) ) {
+								$sidebar_label = $wp_registered_sidebars[ $sidebar_id ]['name'];
+							}
+
+							$widget_label = $wp_widget_factory->widgets[ $widget_classes[ $widget_slug ] ]->name;
+
+							if ( 'wp_inactive_widgets' === $sidebar_id ) {
+								$edit_link = admin_url( 'widgets.php#wp_inactive_widgets' );
+							} else {
+								$edit_link = admin_url( '/customize.php?autofocus[panel]=widgets&autofocus[section]=sidebar-widgets-' . $sidebar_id );
+							}
+
+							$title = ! empty( $widgets[ $widget_key ]['title'] ) ? $widgets[ $widget_key ]['title'] : '';
+
+							$widgets_containing_shortcodes[] = (object) [
+								'title'          => $title,
+								'edit_link'      => $edit_link,
+								'sidebar_label'  => $sidebar_label,
+								'sidebar_id'     => $sidebar_id,
+								'widget_label'   => $widget_label,
+								'widget_base_id' => $widget_slug,
+								'widget_class'   => $widget_classes[ $widget_slug ],
+								'widget_id'      => $widget_id,
+								'shortcodes'     => $active_shortcodes,
+							];
 						}
-
-						$widget_label = $wp_widget_factory->widgets[ $widget_classes[ $widget_slug ] ]->name;
-
-						if ( 'wp_inactive_widgets' === $sidebar_id ) {
-							$edit_link = admin_url( 'widgets.php#wp_inactive_widgets' );
-						} else {
-							$edit_link = admin_url( '/customize.php?autofocus[panel]=widgets&autofocus[section]=sidebar-widgets-' . $sidebar_id );
-						}
-
-						$title = ! empty( $widgets[ $widget_key ]['title'] ) ? $widgets[ $widget_key ]['title'] : '';
-
-						$widgets_containing_shortcodes[] = (object) [
-							'title'          => $title,
-							'edit_link'      => $edit_link,
-							'sidebar_label'  => $sidebar_label,
-							'sidebar_id'     => $sidebar_id,
-							'widget_label'   => $widget_label,
-							'widget_base_id' => $widget_slug,
-							'widget_class'   => $widget_classes[ $widget_slug ],
-							'widget_id'      => $widget_id,
-							'shortcodes'     => $active_shortcodes,
-						];
 					}
 				}
 			}
