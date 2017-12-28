@@ -191,7 +191,6 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 	protected function column_shortcodes( $item ) {
 
 		$shortcodes = [];
-		$registered_shortcodes = array_flip( array_keys( get_shortcodes() ) );
 		$current_shortcode = filter_input( INPUT_GET, 'filter_shortcode' );
 
 		if ( $current_shortcode ) {
@@ -199,7 +198,7 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 			$shortcodes[] = sprintf(
 				'<a href="%s" style="%s">[%s]</a>',
 				esc_url( add_query_arg( 'filter_shortcode', $current_shortcode ) ),
-				array_key_exists( $current_shortcode, $registered_shortcodes ) ? 'color: inherit;' : 'color: red;',
+				shortcode_exists( $current_shortcode ) ? 'color: inherit;' : 'color: red;',
 				esc_html( $current_shortcode )
 			);
 
@@ -212,7 +211,7 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 				$shortcodes[] = sprintf(
 					'<a href="%s" style="%s">[%s]</a>',
 					esc_url( add_query_arg( 'filter_shortcode', $shortcode ) ),
-					array_key_exists( $shortcode, $registered_shortcodes ) ? 'color: inherit;' : 'color: red;',
+					shortcode_exists( $shortcode ) ? 'color: inherit;' : 'color: red;',
 					esc_html( $shortcode )
 				);
 

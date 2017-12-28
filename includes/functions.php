@@ -3,6 +3,45 @@
 namespace ShortcodeScrubber;
 
 /**
+ * Find shortcode tags in a block of content
+ *
+ * @param string $content
+ *
+ * @return array
+ */
+function find_shortcode_tags( $content ) {
+	$shortcodes = [];
+	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
+	if ( ! empty( $matches[1] ) && is_array( $matches[1] ) ) {
+		$shortcodes = array_filter( array_unique( $matches[1] ) );
+	}
+
+	return $shortcodes;
+}
+
+/**
+ * Filter a list of shortcode tags to remove those that are NOT registered. (Returns only registered shortcode tags)
+ *
+ * @param array $tags
+ *
+ * @return array
+ */
+function filter_unregistered_shortcode_tags( array $tags ) {
+	return array_filter( $tags, 'shortcode_exists' );
+}
+
+/**
+ * Filter a list of shortcode tags to remove those that ARE registered. (Returns only unregistered shortcode tags)
+ *
+ * @param array $tags
+ *
+ * @return array
+ */
+function filter_registered_shortcode_tags( array $tags ) {
+	return array_diff( $tags, filter_unregistered_shortcode_tags( $tags ) );
+}
+
+/**
  * Disable a shortcode by name, can optionally hide shortcode content
  *
  * @param string $shortcode Name of the shortcode to disable
@@ -32,52 +71,6 @@ function do_shortcodes( $content, array $shortcodes ) {
 	return $content;
 }
 
-
-/**
- * Find shortcodes in a block of content.
- *
- * @param string $content
- * @param array $shortcodes
- *
- * @return array
- */
-function find_shortcodes_in_content( $content, array $shortcodes = [] ) {
-	$shortcodes_found = array();
-	preg_match_all( '/\[([^\/]*?)(\]|\s)/', $content, $located );
-	if ( ! empty( $located[1] ) && is_array( $located[1] ) ) {
-		$found = array_filter( array_unique( $located[1] ) );
-		$shortcodes_found = $shortcodes ? array_filter( $found, function ( $shortcode ) use ( $shortcodes ) {
-			return in_array( $shortcode, $shortcodes, true );
-		} ) : $found;
-	}
-
-	return $shortcodes_found;
-}
-
-/**
- * Find the active shortcodes in a block of content.
- *
- * @param string $content
- * @param array $shortcodes
- *
- * @return array
- */
-function find_active_shortcodes_in_content( $content, array $shortcodes = [] ) {
-	$shortcodes_found = array();
-	preg_match_all( '/\[([^\/]*?)(\]|\s)/', $content, $located );
-	if ( ! empty( $located[1] ) && is_array( $located[1] ) ) {
-		$active_shortcodes = get_shortcodes();
-		if ( ! empty( $shortcodes ) ) {
-			$active_shortcodes = array_flip( array_intersect( array_keys( $active_shortcodes ), $shortcodes ) );
-		}
-		$shortcodes_found = array_filter( array_unique( $located[1] ), function ( $shortcode_tag ) use ( $active_shortcodes ) {
-			return array_key_exists( $shortcode_tag, $active_shortcodes );
-		} );
-	}
-
-	return $shortcodes_found;
-}
-
 /**
  * Find widgets containing shortcodes, or a specific shortcode if provided
  *
@@ -103,7 +96,8 @@ function find_widgets_containing_shortcodes( array $shortcodes = [] ) {
 					$widgets = get_option( "widget_{$widget_slug}" );
 					if ( isset( $widgets[ $widget_key ] ) ) {
 						$widget_data_string = wp_json_encode( $widgets[ $widget_key ] );
-						$active_shortcodes = find_shortcodes_in_content( $widget_data_string, $shortcodes );
+						$shortcode_tags_found = find_shortcode_tags( $widget_data_string );
+						$active_shortcodes = $shortcodes ? array_intersect( $shortcode_tags_found, $shortcodes ) : $shortcode_tags_found;
 						if ( count( $active_shortcodes ) ) {
 
 							$sidebar_label = __( 'Inactive Widgets', 'shortcode-scrubber' );

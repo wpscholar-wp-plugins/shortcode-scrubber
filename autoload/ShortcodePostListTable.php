@@ -57,7 +57,7 @@ class ShortcodePostListTable extends \WP_List_Table {
 			$this->items[] = array(
 				'date'       => $post,
 				'id'         => $post->ID,
-				'shortcodes' => find_shortcodes_in_content( $post->post_content ),
+				'shortcodes' => find_shortcode_tags( $post->post_content ),
 				'title'      => get_the_title( $post ),
 				'post_type'  => get_post_type_object( $post->post_type )->labels->singular_name,
 			);
@@ -194,7 +194,6 @@ class ShortcodePostListTable extends \WP_List_Table {
 	protected function column_shortcodes( $item ) {
 
 		$shortcodes = [];
-		$registered_shortcodes = array_flip( array_keys( get_shortcodes() ) );
 		$current_shortcode = filter_input( INPUT_GET, 'filter_shortcode' );
 
 		if ( $current_shortcode ) {
@@ -202,7 +201,7 @@ class ShortcodePostListTable extends \WP_List_Table {
 			$shortcodes[] = sprintf(
 				'<a href="%s" style="%s">[%s]</a>',
 				esc_url( add_query_arg( 'filter_shortcode', $current_shortcode ) ),
-				array_key_exists( $current_shortcode, $registered_shortcodes ) ? 'color: inherit;' : 'color: red;',
+				shortcode_exists( $current_shortcode ) ? 'color: inherit;' : 'color: red;',
 				esc_html( $current_shortcode )
 			);
 
@@ -214,7 +213,7 @@ class ShortcodePostListTable extends \WP_List_Table {
 				$shortcodes[] = sprintf(
 					'<a href="%s" style="%s">[%s]</a>',
 					esc_url( add_query_arg( 'filter_shortcode', $shortcode ) ),
-					array_key_exists( $shortcode, $registered_shortcodes ) ? 'color: inherit;' : 'color: red;',
+					shortcode_exists( $shortcode ) ? 'color: inherit;' : 'color: red;',
 					esc_html( $shortcode )
 				);
 			}
@@ -222,7 +221,6 @@ class ShortcodePostListTable extends \WP_List_Table {
 		}
 
 		return count( $shortcodes ) ? implode( '<br />', $shortcodes ) : '-';
-
 	}
 
 	/**
