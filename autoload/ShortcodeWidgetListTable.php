@@ -38,7 +38,7 @@ class ShortcodeWidgetListTable extends \WP_List_Table {
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 
 		$filters = $this->get_filters();
-		$per_page = $this->get_items_per_page( 'shortcode_scrubber_widget_locator_items_per_page', 10 );
+		$per_page = $this->get_items_per_page( 'shortcode_scrubber_widgets_per_page', 10 );
 
 		$shortcode = array_filter( (array) $filters['shortcode'] );
 		$widgets = find_widgets_containing_shortcodes( $shortcode );

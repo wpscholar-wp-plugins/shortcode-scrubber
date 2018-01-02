@@ -3,8 +3,102 @@
 namespace ShortcodeScrubber;
 
 $current_shortcode = filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRING );
+if ( empty( $current_shortcode ) ) {
+	$current_shortcode = filter_input( INPUT_GET, 's', FILTER_SANITIZE_STRING );
+}
+
+$filters = get_actionable_shortcode_filters( $current_shortcode );
+$applied_filters = Options::get( 'applied_filters', [] );
+
+if ( isset( $_POST['apply'] ) ) {
+	$shortcode = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
+	$filter_to_apply = filter_input( INPUT_POST, 'shortcode-filter', FILTER_SANITIZE_STRING );
+	if ( $shortcode && $filter_to_apply ) {
+		$applied_filters[ $shortcode ] = $filter_to_apply;
+		Options::set( 'applied_filters', $applied_filters );
+		if ( isset( $_POST['persist'] ) ) {
+			freeze_shortcode( $shortcode );
+			unset( $applied_filters[ $shortcode ] );
+			Options::set( 'applied_filters', $applied_filters );
+		}
+		printf(
+			'<div class="notice notice-success"><p>%s <a href="%s">%s</a></p></div>',
+			esc_html__( 'Filter applied.', 'shortcode-scrubber' ),
+			esc_url( admin_url( '/admin.php?page=shortcode-scrubber-filters' ) ),
+			esc_html__( 'View all filters', 'shortcode-scrubber' )
+		);
+	}
+} else if ( isset( $_POST['clear'] ) ) {
+	$shortcode = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
+	if ( $shortcode ) {
+		unset( $applied_filters[ $shortcode ] );
+		Options::set( 'applied_filters', $applied_filters );
+		printf(
+			'<div class="notice notice-success"><p>%s <a href="%s">%s</a></p></div>',
+			esc_html__( 'Filter removed.', 'shortcode-scrubber' ),
+			esc_url( admin_url( '/admin.php?page=shortcode-scrubber-filters' ) ),
+			esc_html__( 'View all filters', 'shortcode-scrubber' )
+		);
+	}
+}
 
 ?>
+<form id="shortcode-scrubber-manage" method="post">
+
+    <h2>
+		<?php printf( esc_html__( 'Shortcode: %s', 'shortcode-scrubber' ), esc_html( '[' . $current_shortcode . ']' ) ); ?>
+    </h2>
+
+    <fieldset class="field field-radio-group">
+
+        <legend><?php esc_html_e( 'Select the filter you would like to apply:', 'shortcode-scrubber' ); ?></legend>
+
+		<?php foreach ( $filters as $filter ): ?>
+            <div class="field field-radio">
+                <label>
+                    <input<?php checked( isset( $applied_filters[ $current_shortcode ] ) && $filter->id === $applied_filters[ $current_shortcode ] ); ?>
+                            type="radio"
+                            name="shortcode-filter"
+                            value="<?php echo esc_attr( $filter->id ); ?>"
+                    />
+                    <span><?php echo esc_html( $filter->label ); ?></span>
+                </label>
+				<?php if ( isset( $filter->description ) ): ?>
+                    <p class="field__description"><?php echo esc_html( $filter->description ); ?></p>
+				<?php endif; ?>
+            </div>
+		<?php endforeach; ?>
+
+    </fieldset>
+
+    <a href="#advanced-options"
+       onclick="shortcodeScrubberToggleElement('advanced-options')">
+		<?php esc_html_e( 'Advanced Options', 'shortcode-scrubber' ); ?>
+    </a>
+
+    <div id="advanced-options" style="display:none;">
+        <div class="field">
+            <label>
+                <input type="checkbox" name="persist" value="true" />
+                <span><?php esc_html_e( 'Apply this filter permanently', 'shortcode-scrubber' ); ?></span>
+            </label>
+            <p class="field__description danger"><?php esc_html_e( 'This operation is irreversible! By selecting this option, you verify that you have a recent backup of your database.', 'shortcode-scrubber' ); ?></p>
+        </div>
+    </div>
+
+    <p>
+		<?php submit_button( esc_html__( 'Apply', 'shortcode-scrubber' ), 'primary', 'apply', false ); ?>
+		<?php submit_button( esc_html__( 'Clear', 'shortcode-scrubber' ), 'secondary', 'clear', false ); ?>
+        <a class="alignright"
+           href="<?php echo esc_url( add_query_arg( 'page', 'shortcode-scrubber-manage', admin_url( 'admin.php' ) ) ); ?>">
+			<?php esc_html_e( 'Cancel', 'shortcode-scrubber' ); ?>
+        </a>
+    </p>
+
+    <input type="hidden" name="shortcode" value="<?php echo esc_attr( $current_shortcode ); ?>" />
+
+</form>
+
 <style>
     #shortcode-scrubber-manage {
         background: white;
@@ -13,13 +107,12 @@ $current_shortcode = filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRIN
         border: 1px solid #ccc;
     }
 
-    #shortcode-scrubber-manage legend {
-        font-weight: bold;
+    #shortcode-scrubber-manage .danger {
+        color: red !important;
     }
 
-    #shortcode-scrubber-manage textarea {
-        width: 100%;
-        min-height: 150px;
+    #shortcode-scrubber-manage legend {
+        font-weight: bold;
     }
 
     #shortcode-scrubber-manage .field {
@@ -27,101 +120,25 @@ $current_shortcode = filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRIN
         margin: 1em 0;
     }
 
+    #shortcode-scrubber-manage .field-radio {
+        margin-left: 1em;
+    }
+
     #shortcode-scrubber-manage .field__description {
         font-style: italic;
         color: #666;
-    }
-
-    #shortcode-scrubber-manage .field-radio-group label {
-        display: block;
-        margin: .5em 0;
+        margin: .25em 0 0 1.8em;
     }
 </style>
-<form id="shortcode-scrubber-manage" method="post">
 
-    <h2>
-        Shortcode: <?php echo esc_html( '[' . $current_shortcode . ']' ); ?>
-    </h2>
-
-    <fieldset class="field field-radio-group">
-        <legend>What would you like to do with this shortcode?</legend>
-        <label class="field-radio">
-            <input type="radio" name="action" value="remove" />
-            <span class="field__label-text"><?php esc_html_e( 'Remove all instances of this shortcode', 'shortcode-scrubber' ); ?></span>
-        </label>
-        <label class="field-radio">
-            <input type="radio" name="action" value="replace" />
-            <span class="field__label-text"><?php esc_html_e( 'Replace the shortcode output', 'shortcode-scrubber' ); ?></span>
-        </label>
-    </fieldset>
-
-    <fieldset class="field field-radio-group">
-        <legend>How do you want to handle the shortcode content?</legend>
-        <label class="field-radio">
-            <input type="radio" name="content" value="keep" />
-            <span class="field__label-text"><?php esc_html_e( 'Keep the content', 'shortcode-scrubber' ); ?></span>
-        </label>
-        <label class="field-radio">
-            <input type="radio" name="content" value="remove" />
-            <span class="field__label-text"><?php esc_html_e( 'Remove the content', 'shortcode-scrubber' ); ?></span>
-        </label>
-        <p class="description">
-            This only applies to shortcodes that have a start and end tag. The content is the text between the start and
-            end tags. When in doubt, keep the content.
-        </p>
-    </fieldset>
-
-    <fieldset class="field field-radio-group">
-        <legend>What type of replacement would you like to do?</legend>
-        <label class="field-radio">
-            <input type="radio" name="replace" value="generated" />
-            <span class="field__label-text"><?php esc_html_e( 'Replace with generated output', 'shortcode-scrubber' ); ?></span>
-        </label>
-        <label class="field-radio">
-            <input type="radio" name="replace" value="static" />
-            <span class="field__label-text"><?php esc_html_e( 'Replace with static output', 'shortcode-scrubber' ); ?></span>
-        </label>
-        <label class="field-radio">
-            <input type="radio" name="replace" value="dynamic" />
-            <span class="field__label-text"><?php esc_html_e( 'Replace with dynamic output', 'shortcode-scrubber' ); ?></span>
-        </label>
-    </fieldset>
-
-    <fieldset class="field field-radio-group">
-        <legend>How would you like your changes to persist?</legend>
-        <label class="field-radio">
-            <input type="radio" name="permanence" value="" />
-            <span class="field__label-text"><?php esc_html_e( 'Temporary', 'shortcode-scrubber' ); ?></span>
-            <span class="field__description"> - The safe option. Content is unchanged, except when displayed. Can be undone at any time.</span>
-        </label>
-        <label class="field-radio">
-            <input type="radio" name="" value="" />
-            <span class="field__label-text"><?php esc_html_e( 'Permanent', 'shortcode-scrubber' ); ?></span>
-            <span class="field__description"> - The risky option. Content is permanently changed. Cannot be undone. A database backup is recommended.</span>
-        </label>
-    </fieldset>
-
-
-    <!-- <div class="field field-radio">
-        <label>
-            <input type="radio" name="action" value="delete" />
-            <span class="field__label-text"><?php /*esc_html_e( 'Delete', 'shortcode-scrubber' ); */
-	?></span>
-            <span class="field__description">Permanently remove all instances of this shortcode</span>
-        </label>
-    </div>-->
-
-    <!-- <div class="field">
-		 <label>
-			 <input type="checkbox" name="actions[]" value="strip-content" />
-			 <span class="field__label-text">Strip Content</span>
-		 </label>
-	 </div>-->
-
-    <p>
-		<?php submit_button( esc_html__( 'Submit', 'shortcode-scrubber' ), 'primary', 'submit', false ); ?>
-        <a class="button button-secondary"
-           href="<?php echo esc_url( add_query_arg( 'page', 'shortcode-scrubber-actions', admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Cancel', 'shortcode-scrubber' ); ?></a>
-    </p>
-
-</form>
+<script>
+    function shortcodeScrubberToggleElement(id) {
+        const el = document.getElementById(id);
+        let display = el.style.display;
+        if ('none' === display) {
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+</script>

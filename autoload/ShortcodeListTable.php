@@ -197,19 +197,13 @@ class ShortcodeListTable extends \WP_List_Table {
 	}
 
 	/**
-	 * Callback for displaying the shortcode tag column // TODO: Clean this up
+	 * Callback for displaying the shortcode tag column
 	 *
 	 * @param array $item
 	 *
 	 * @return string
 	 */
 	protected function column_tag( $item ) {
-
-		$current_url = ( is_ssl() ? 'https' : 'http' ) . '://' . getenv( 'HTTP_HOST' ) . getenv( 'REQUEST_URI' );
-		$url = add_query_arg( 'tag', $item['tag'], $current_url );
-
-		$isDisabled = in_array( $item['tag'], Options::get( 'disabled', [] ) );
-		$isHidden = in_array( $item['tag'], Options::get( 'hidden', [] ) );
 
 		$manageUrl = add_query_arg( [
 			'page'      => 'shortcode-scrubber-manage',
@@ -227,27 +221,11 @@ class ShortcodeListTable extends \WP_List_Table {
 		], admin_url( 'admin.php' ) );
 
 		$actions = [
-			//'enable'       => '<a href="' . esc_url( add_query_arg( 'action', 'enable', $url ) ) . '">' . esc_html__( 'Enable', 'shortcode-scrubber' ) . '</a>',
-			//'disable'      => '<a href="' . esc_url( add_query_arg( 'action', 'disable', $url ) ) . '">' . esc_html__( 'Disable', 'shortcode-scrubber' ) . '</a>',
-			//'show'         => '<a href="' . esc_url( add_query_arg( 'action', 'show', $url ) ) . '">' . esc_html__( 'Show', 'shortcode-scrubber' ) . '</a>',
-			//'hide'         => '<a href="' . esc_url( add_query_arg( 'action', 'hide', $url ) ) . '">' . esc_html__( 'Hide', 'shortcode-scrubber' ) . '</a>',
 			'manage'       => '<a href="' . esc_url( $manageUrl ) . '">' . esc_html__( 'Manage', 'shortcode-scrubber' ) . '</a>',
 			'find_posts'   => '<a href="' . esc_url( $postUsageUrl ) . '">' . esc_html__( 'Find Post Usages', 'shortcode-scrubber' ) . '</a>',
 			'find_widgets' => '<a href="' . esc_url( $widgetUsageUrl ) . '">' . esc_html__( 'Find Widget Usages', 'shortcode-scrubber' ) . '</a>',
-			//'docs'    => '<a href="' . esc_url( add_query_arg( 'action', 'docs', $url ) ) . '">' . esc_html__( 'Documentation', 'shortcode-scrubber' ) . '</a>',
+			//'docs'    => '<a href="' . esc_url( ... ) . '">' . esc_html__( 'Documentation', 'shortcode-scrubber' ) . '</a>',
 		];
-
-		if ( $isDisabled ) {
-			unset( $actions['disable'] );
-		} else {
-			unset( $actions['enable'] );
-		}
-
-		if ( $isHidden ) {
-			unset( $actions['hide'] );
-		} else {
-			unset( $actions['show'] );
-		}
 
 		return esc_html( '[' . $item['tag'] . ']' ) . $this->row_actions( $actions );
 	}

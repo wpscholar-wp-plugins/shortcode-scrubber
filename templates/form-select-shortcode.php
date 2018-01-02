@@ -3,6 +3,7 @@
 namespace ShortcodeScrubber;
 
 $current_shortcode = filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRING );
+$search = filter_input( INPUT_GET, 's', FILTER_SANITIZE_STRING );
 
 ?>
 <form method="get">
@@ -21,6 +22,15 @@ $current_shortcode = filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRIN
                     </option>
 				<?php endforeach; ?>
             </select>
+        </label>
+    </p>
+
+    <p><?php esc_html_e( 'OR', 'shortcode-scrubber' ); ?></p>
+
+    <p>
+        <label>
+            <span><?php esc_html_e( 'Type the name of a shortcode', 'shortcode-scrubber' ); ?></span><br />
+            <input class="regular-text" name="s" value="<?php echo esc_attr( $search ); ?>" />
         </label>
     </p>
 

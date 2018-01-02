@@ -42,6 +42,18 @@ function filter_registered_shortcode_tags( array $tags ) {
 }
 
 /**
+ * Custom shortcode callback function for returning the shortcode content.
+ *
+ * @param array $atts
+ * @param string $content
+ *
+ * @return string
+ */
+function return_shortcode_content( $atts, $content = '' ) {
+	return $content;
+}
+
+/**
  * Disable a shortcode by name, can optionally hide shortcode content
  *
  * @param string $shortcode Name of the shortcode to disable
@@ -51,6 +63,64 @@ function disable_shortcode( $shortcode, $show_content = true ) {
 	add_shortcode( $shortcode, function ( $atts, $content = '' ) use ( $show_content ) {
 		return $show_content ? $content : '';
 	} );
+}
+
+/**
+ * Remove all specified shortcode tags from the given content. Removes registered shortcodes by default.
+ *
+ * A duplicate of the strip_shortcodes() function in WordPress, but allows you to strip unregistered shortcodes as well.
+ * Additionally, this function allows you to optionally strip the shortcode content or keep it.
+ *
+ * @param string $content
+ * @param array $tags
+ * @param bool $strip_content
+ *
+ * @return string
+ */
+function strip_shortcodes( $content, array $tags = [], $strip_content = true ) {
+
+	global $shortcode_tags;
+
+	if ( empty( $tags ) ) {
+		$tags = array_keys( $shortcode_tags );
+	}
+
+	$tags_to_remove = array_intersect( find_shortcode_tags( $content ), $tags );
+
+	if ( $tags_to_remove ) {
+
+		$pattern = get_shortcode_regex( $tags_to_remove );
+
+		if ( $strip_content ) {
+			$content = (string) preg_replace_callback( "/{$pattern}/", 'strip_shortcode_tag', $content );
+		} else {
+			$content = (string) preg_replace( "/{$pattern}/", '$5', $content );
+		}
+
+		// Always restore square braces so we don't break things like <!--[if IE ]>
+		$content = unescape_invalid_shortcodes( $content );
+
+	}
+
+	return $content;
+}
+
+/**
+ * Strip shortcodes recursively
+ *
+ * @param string $content
+ * @param array $tags
+ *
+ * @return string
+ */
+function strip_shortcodes_recursively( $content, array $tags = [] ) {
+	$content = strip_shortcodes( $content, $tags, false );
+	$nested_tags = array_intersect( find_shortcode_tags( $content ), $tags );
+	if ( $nested_tags ) {
+		$content = strip_shortcodes_recursively( $content, $tags );
+	}
+
+	return $content;
 }
 
 /**
@@ -64,7 +134,7 @@ function disable_shortcode( $shortcode, $show_content = true ) {
 function do_shortcodes( $content, array $shortcodes ) {
 	global $shortcode_tags;
 	$original_shortcode_tags = $shortcode_tags;
-	$shortcode_tags = array_intersect_key( $shortcode_tags, array_fill_keys( $shortcodes, true ) );
+	$shortcode_tags = array_intersect_key( $shortcode_tags, array_flip( $shortcodes ) );
 	$content = do_shortcode( $content );
 	$shortcode_tags = $original_shortcode_tags;
 
@@ -188,15 +258,19 @@ function get_widget_areas() {
 /**
  * Register a new shortcode filter
  *
- * @param string $name
- * @param string $label
- * @param callable $callback
+ * @param string $id
  * @param array $args
  */
-function add_shortcode_filter( $name, $label, callable $callback, array $args = [] ) {
-	$filter = (object) array_merge( $args, compact( 'name', 'label', 'callback' ) );
+function add_shortcode_filter( $id, array $args = [] ) {
+	$defaults = [
+		'id'          => $id,
+		'label'       => '',
+		'description' => '',
+		'callback'    => null,
+	];
+	$filter = (object) array_merge( $defaults, $args );
 	add_filter( __NAMESPACE__ . ':shortcode-filters', function ( $filters ) use ( $filter ) {
-		$filters[ $filter->name ] = $filter;
+		$filters[ $filter->id ] = $filter;
 
 		return $filters;
 	} );
@@ -209,4 +283,135 @@ function add_shortcode_filter( $name, $label, callable $callback, array $args = 
  */
 function get_shortcode_filters() {
 	return (array) apply_filters( __NAMESPACE__ . ':shortcode-filters', [] );
+}
+
+/**
+ * Get a shortcode filter
+ *
+ * @param string $id
+ *
+ * @return object|null
+ */
+function get_shortcode_filter( $id ) {
+	$filters = get_shortcode_filters();
+
+	return isset( $filters[ $id ] ) ? $filters[ $id ] : null;
+}
+
+/**
+ * Get a list of actionable shortcode filters.
+ *
+ * @param string $shortcode_tag
+ *
+ * @return array
+ */
+function get_actionable_shortcode_filters( $shortcode_tag ) {
+	$filters = get_shortcode_filters();
+
+	foreach ( $filters as $id => $filter ) {
+		if ( isset( $filter->shortcode ) && $shortcode_tag !== $filter->shortcode ) {
+			unset( $filters[ $id ] );
+		}
+	}
+
+	return $filters;
+}
+
+/**
+ * Apply shortcode filters
+ */
+function apply_shortcode_filters() {
+	$filters = get_shortcode_filters();
+	$applied_filters = (array) Options::get( 'applied_filters', [] );
+	foreach ( $applied_filters as $shortcode => $id ) {
+		if (
+			isset( $filters[ $id ] ) &&
+			is_object( $filters[ $id ] ) &&
+			property_exists( $filters[ $id ], 'callback' ) &&
+			is_callable( $filters[ $id ]->callback )
+		) {
+			$callable = $filters[ $id ]->callback;
+			$callable( $shortcode );
+		}
+	}
+}
+
+/**
+ * Apply the shortcode filter for a specific shortcode
+ */
+function apply_filter_for_shortcode( $shortcode ) {
+	$applied_filters = (array) Options::get( 'applied_filters', [] );
+	if ( isset( $applied_filters[ $shortcode ] ) ) {
+		$id = $applied_filters[ $shortcode ];
+		$filter = get_shortcode_filter( $id );
+		if ( $filter && isset( $filter->callback ) && is_callable( $filter->callback ) ) {
+			$callable = $filter->callback;
+			$callable( $shortcode );
+		}
+	}
+}
+
+/**
+ * Freeze the specified shortcodes for a specific post.
+ *
+ * @param \WP_Post $wp_post
+ * @param array $shortcodes
+ */
+function freeze_shortcodes_for_post( \WP_Post $wp_post, array $shortcodes = [] ) {
+	global $post;
+	$original_post = $post;
+	$post = $wp_post;
+	setup_postdata( $wp_post );
+	$content = get_the_content();
+	$updated_content = do_shortcodes( $content, $shortcodes );
+	if ( $content !== $updated_content ) {
+		wp_update_post( [
+			'ID'           => $wp_post->ID,
+			'post_content' => $updated_content,
+		] );
+	}
+	wp_reset_postdata();
+	$post = $original_post;
+}
+
+/**
+ * Freeze a shortcode
+ *
+ * @param string $shortcode
+ */
+function freeze_shortcode( $shortcode ) {
+
+	apply_filter_for_shortcode( $shortcode );
+
+	$post_types = wp_filter_object_list(
+		array_map( 'get_post_type_object', get_post_types_by_support( 'editor' ) ),
+		[ 'public' => true ]
+	);
+
+	$query = new \WP_Query( [
+		'nopaging'  => true,
+		'post_type' => wp_list_pluck( $post_types, 'name' ),
+		's'         => '[' . $shortcode,
+	] );
+
+	if ( $query->have_posts() ) {
+		foreach ( $query->posts as $post ) {
+			freeze_shortcodes_for_post( $post, [ $shortcode ] );
+		}
+	}
+
+	$widgets = find_widgets_containing_shortcodes( [ $shortcode ] );
+	foreach ( $widgets as $widget ) {
+		$option_name = "widget_{$widget->widget_base_id}";
+		$data = get_option( $option_name );
+		if ( $data ) {
+			$json = wp_json_encode( $data );
+			$updated_json = do_shortcodes( $json, [ $shortcode ] );
+			$updated_data = json_decode( $updated_json, true );
+			if ( $updated_data && $data !== $updated_data ) {
+				update_option( $option_name, $updated_data );
+			}
+		}
+	}
+
 }

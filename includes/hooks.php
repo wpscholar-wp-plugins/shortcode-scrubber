@@ -1,5 +1,7 @@
 <?php
 
+use ShortcodeScrubber\Options;
+
 // Magically enable nested shortcodes for shortcodes that don't support it
 add_filter( 'do_shortcode_tag', 'do_shortcode' );
 
@@ -45,7 +47,7 @@ add_action( 'admin_menu', function () {
 		add_screen_option( 'per_page', array(
 			'label'   => esc_html__( 'Number of items per page', 'shortcode-scrubber' ),
 			'default' => 10,
-			'option'  => 'shortcode_scrubber_post_locator_items_per_page'
+			'option'  => 'shortcode_scrubber_posts_per_page'
 		) );
 
 	} );
@@ -67,22 +69,56 @@ add_action( 'admin_menu', function () {
 		add_screen_option( 'per_page', array(
 			'label'   => esc_html__( 'Number of items per page', 'shortcode-scrubber' ),
 			'default' => 10,
-			'option'  => 'shortcode_scrubber_widget_locator_items_per_page'
+			'option'  => 'shortcode_scrubber_widgets_per_page'
 		) );
 
 	} );
 
-	// Add shortcode actions page
+	// Add shortcode filter management page
+	$shortcode_filters = add_submenu_page(
+		'shortcode-scrubber',
+		esc_html__( 'Shortcode Filters', 'shortcode-scrubber' ),
+		esc_html__( 'Shortcode Filters', 'shortcode-scrubber' ),
+		'manage_options',
+		'shortcode-scrubber-filters',
+		function () {
+			require SHORTCODE_SCRUBBER_DIR . '/templates/shortcode-filters.php';
+		}
+	);
+
+	add_action( "load-{$shortcode_filters}", function () {
+
+		add_screen_option( 'per_page', array(
+			'label'   => __( 'Number of items per page', 'shortcode-scrubber' ),
+			'default' => 10,
+			'option'  => 'shortcode_scrubber_filters_per_page'
+		) );
+
+	} );
+
+	// Add shortcode management page
 	add_submenu_page(
 		'shortcode-scrubber',
-		esc_html__( 'Manage', 'shortcode-scrubber' ),
-		esc_html__( 'Manage', 'shortcode-scrubber' ),
+		esc_html__( 'Manage Filters', 'shortcode-scrubber' ),
+		esc_html__( 'Manage Filters', 'shortcode-scrubber' ),
 		'manage_options',
 		'shortcode-scrubber-manage',
 		function () {
-			require SHORTCODE_SCRUBBER_DIR . '/templates/shortcode-manage.php';
+			require SHORTCODE_SCRUBBER_DIR . '/templates/shortcode-manage-filters.php';
 		}
 	);
+
+	// Add settings page
+	/*add_submenu_page(
+		'shortcode-scrubber',
+		esc_html__( 'Settings', 'shortcode-scrubber' ),
+		esc_html__( 'Settings', 'shortcode-scrubber' ),
+		'manage_options',
+		'shortcode-scrubber-settings',
+		function () {
+			require plugin_dir_path( SHORTCODE_SCRUBBER_FILE ) . 'templates/settings.php';
+		}
+	);*/
 
 } );
 
@@ -90,10 +126,28 @@ add_action( 'admin_menu', function () {
 add_filter( 'set-screen-option', function ( $status, $option, $value ) {
 	switch ( $option ) {
 		case 'shortcode_scrubber_items_per_page':
-		case 'shortcode_scrubber_post_locator_items_per_page':
-		case 'shortcode_scrubber_widget_locator_items_per_page':
+		case 'shortcode_scrubber_posts_per_page':
+		case 'shortcode_scrubber_filters_per_page':
+		case 'shortcode_scrubber_widgets_per_page':
 			return absint( $value );
 		default:
 			return $status;
 	}
+}, 10, 3 );
+
+// Apply custom shortcode actions
+add_action( 'template_redirect', '\ShortcodeScrubber\apply_shortcode_filters', 999 );
+
+// Make it easy to check for shortcodes on active plugins
+add_filter( 'plugin_action_links', function ( $actions, $plugin_file, $plugin_data ) {
+
+	if ( is_plugin_active( $plugin_file ) ) {
+		$actions['shortcode_check'] = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( '/admin.php?page=shortcode-scrubber&filter_provider=' . $plugin_data['Name'] ) ),
+			esc_html__( 'Check for Shortcodes', 'shortcode-scrubber' )
+		);
+	}
+
+	return $actions;
 }, 10, 3 );
