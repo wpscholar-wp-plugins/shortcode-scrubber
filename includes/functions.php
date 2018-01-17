@@ -124,6 +124,21 @@ function strip_shortcodes_recursively( $content, array $tags = [] ) {
 }
 
 /**
+ * Hide broken shortcodes
+ *
+ * @param string $content
+ *
+ * @return string
+ */
+function hide_broken_shortcodes( $content ) {
+	$shortcodes = find_shortcode_tags( $content );
+	$unregistered_shortcodes = filter_registered_shortcode_tags( $shortcodes );
+	$content = strip_shortcodes_recursively( $content, $unregistered_shortcodes );
+
+	return $content;
+}
+
+/**
  * Executes the specified shortcodes in the content.
  *
  * @param string $content Content to be processed for shortcodes
