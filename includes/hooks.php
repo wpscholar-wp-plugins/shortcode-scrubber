@@ -1,14 +1,16 @@
 <?php
 
-use ShortcodeScrubber\Options;
-
 // Magically enable nested shortcodes for shortcodes that don't support it
 add_filter( 'do_shortcode_tag', 'do_shortcode' );
 
+// Move wpautop from being run before shortcodes are processed, to after
+remove_filter( 'the_content', 'wpautop' );
+add_filter( 'the_content', 'wpautop', 12 );
+
 // Automatically hide broken shortcodes
-add_filter( 'the_content', 'ShortcodeScrubber\hide_broken_shortcodes' );
-add_filter( 'the_excerpt', 'ShortcodeScrubber\hide_broken_shortcodes' );
-add_filter( 'widget_text', 'ShortcodeScrubber\hide_broken_shortcodes' );
+add_filter( 'the_content', 'ShortcodeScrubber\hide_broken_shortcodes', 999 );
+add_filter( 'the_excerpt', 'ShortcodeScrubber\hide_broken_shortcodes', 999 );
+add_filter( 'widget_text', 'ShortcodeScrubber\hide_broken_shortcodes', 999 );
 
 // Setup admin pages
 add_action( 'admin_menu', function () {
