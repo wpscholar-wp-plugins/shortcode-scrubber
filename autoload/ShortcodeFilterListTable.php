@@ -39,8 +39,6 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 
-		$per_page = $this->get_items_per_page( 'shortcode_scrubber_filters_per_page', 10 );
-
 		$shortcode_filters = get_shortcode_filters();
 		$applied_filters = (array) Options::get( 'applied_filters', [] );
 
@@ -59,6 +57,9 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 		$items = $this->filter( $items );
 		$items = $this->sort( $items );
 
+		$per_page = $this->get_items_per_page( 'shortcode_scrubber_filters_per_page', 10 );
+		$offset = ( $this->get_pagenum() - 1 ) * $per_page;
+
 		$this->set_pagination_args(
 			array(
 				'per_page'    => $per_page,
@@ -66,7 +67,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 			)
 		);
 
-		$this->items = $items;
+		$this->items = array_slice( $items, $offset, $per_page );
 
 	}
 
