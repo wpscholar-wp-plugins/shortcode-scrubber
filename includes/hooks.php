@@ -93,6 +93,12 @@ add_action( 'admin_menu', function () {
 
 	add_action( "load-{$shortcode_filters}", function () {
 
+		if ( isset( $_GET['action'], $_GET['shortcode'] ) && 'delete' === $_GET['action'] ) {
+			\ShortcodeScrubber\deactivate_shortcode_filter( filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRING ) );
+			wp_safe_redirect( remove_query_arg( [ 'action', 'shortcode' ] ) );
+			exit;
+		}
+
 		add_screen_option( 'per_page', array(
 			'label'   => __( 'Number of items per page', 'shortcode-scrubber' ),
 			'default' => 10,

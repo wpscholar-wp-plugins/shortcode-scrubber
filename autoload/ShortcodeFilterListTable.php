@@ -191,6 +191,11 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 				esc_url( admin_url( '/admin.php?page=shortcode-scrubber-widget-usages&filter_shortcode=' . $item['shortcode'] ) ),
 				esc_html__( 'Find Widget Usages', 'shortcode-scrubber' )
 			),
+			'delete'       => sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( '/admin.php?page=shortcode-scrubber-filters&action=delete&shortcode=' . $item['shortcode'] ) ),
+				esc_html__( 'Delete', 'shortcode-scrubber' )
+			),
 		];
 
 		$edit_link = sprintf(
