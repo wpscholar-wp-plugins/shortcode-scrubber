@@ -14,12 +14,10 @@ if ( isset( $_POST['apply'] ) ) {
 	$shortcode = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
 	$filter_to_apply = filter_input( INPUT_POST, 'shortcode-filter', FILTER_SANITIZE_STRING );
 	if ( $shortcode && $filter_to_apply ) {
-		$applied_filters[ $shortcode ] = $filter_to_apply;
-		Options::set( 'applied_filters', $applied_filters );
+		activate_shortcode_filter( $shortcode, $filter_to_apply );
 		if ( isset( $_POST['persist'] ) ) {
 			freeze_shortcode( $shortcode );
-			unset( $applied_filters[ $shortcode ] );
-			Options::set( 'applied_filters', $applied_filters );
+			deactivate_shortcode_filter( $shortcode );
 		}
 		printf(
 			'<div class="notice notice-success"><p>%s <a href="%s">%s</a></p></div>',
@@ -31,6 +29,7 @@ if ( isset( $_POST['apply'] ) ) {
 } else if ( isset( $_POST['clear'] ) ) {
 	$shortcode = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
 	if ( $shortcode ) {
+		deactivate_shortcode_filter( $shortcode );
 		unset( $applied_filters[ $shortcode ] );
 		Options::set( 'applied_filters', $applied_filters );
 		printf(
