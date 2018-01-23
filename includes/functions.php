@@ -367,6 +367,35 @@ function apply_filter_for_shortcode( $shortcode ) {
 }
 
 /**
+ * Activate a shortcode filter
+ *
+ * @param string $shortcode
+ * @param string $filter_id
+ */
+function activate_shortcode_filter( $shortcode, $filter_id ) {
+	$filters = get_actionable_shortcode_filters( $shortcode );
+	if ( array_key_exists( $filter_id, $filters ) ) {
+		$applied_filters = (array) Options::get( 'applied_filters', [] );
+		if ( ! array_key_exists( $shortcode, $applied_filters ) || $applied_filters[ $shortcode ] !== $filter_id ) {
+			$applied_filters[ $shortcode ] = $filter_id;
+			Options::set( 'applied_filters', $applied_filters );
+		}
+	}
+
+}
+
+/**
+ * Deactivate a shortcode filter
+ *
+ * @param string $shortcode
+ */
+function deactivate_shortcode_filter( $shortcode ) {
+	$applied_filters = (array) Options::get( 'applied_filters', [] );
+	unset( $applied_filters[ $shortcode ] );
+	Options::set( 'applied_filters', $applied_filters );
+}
+
+/**
  * Freeze the specified shortcodes for a specific post.
  *
  * @param \WP_Post $wp_post
