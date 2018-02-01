@@ -3,7 +3,7 @@
 /*
  * Plugin Name: Shortcode Scrubber
  * Plugin URI:
- * Description:
+ * Description: A powerful tool for cleaning up shortcodes on your site and confidently managing plugins and themes that use shortcodes.
  * Version: 0.1.0
  * Author: Micah Wood
  * Author URI:  https://wpscholar.com
@@ -12,6 +12,6 @@
  */
 
 define( 'SHORTCODE_SCRUBBER_FILE', __FILE__ );
-define( 'SHORTCODE_SCRUBBER_DIR', untrailingslashit( plugin_dir_path( SHORTCODE_SCRUBBER_FILE ) ) );
+define( 'SHORTCODE_SCRUBBER_DIR', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 
 require __DIR__ . '/includes/bootstrap.php';
