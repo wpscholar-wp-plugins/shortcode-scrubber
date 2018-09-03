@@ -1,6 +1,5 @@
 <?php
 
-//require __DIR__ . '/settings.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/hooks.php';
 require __DIR__ . '/shortcode-filters.php';

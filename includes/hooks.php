@@ -121,18 +121,6 @@ add_action( 'admin_menu', function () {
 		}
 	);
 
-	// Add settings page
-	/*add_submenu_page(
-		'shortcode-scrubber',
-		esc_html__( 'Settings', 'shortcode-scrubber' ),
-		esc_html__( 'Settings', 'shortcode-scrubber' ),
-		'manage_options',
-		'shortcode-scrubber-settings',
-		function () {
-			require plugin_dir_path( SHORTCODE_SCRUBBER_FILE ) . 'templates/settings.php';
-		}
-	);*/
-
 } );
 
 // Handle saving of screen options
