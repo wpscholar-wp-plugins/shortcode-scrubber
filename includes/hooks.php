@@ -93,11 +93,18 @@ add_action( 'admin_menu', function () {
 		}
 	);
 
-	add_action( "load-{$shortcode_filters}", function () {
+	// Get collection of applied filters
+	$applied_filters = (array) \ShortcodeScrubber\Options::get( 'applied_filters', [] );
+
+	add_action( "load-{$shortcode_filters}", function () use ( $applied_filters ) {
 
 		if ( isset( $_GET['action'], $_GET['shortcode'] ) && 'delete' === $_GET['action'] ) {
 			\ShortcodeScrubber\deactivate_shortcode_filter( filter_input( INPUT_GET, 'shortcode', FILTER_SANITIZE_STRING ) );
-			wp_safe_redirect( remove_query_arg( [ 'action', 'shortcode' ] ) );
+			if ( count( $applied_filters ) === 1 ) {
+				wp_safe_redirect( admin_url( '/admin.php?page=shortcode-scrubber-manage' ) );
+			} else {
+				wp_safe_redirect( remove_query_arg( [ 'action', 'shortcode' ] ) );
+			}
 			exit;
 		}
 
@@ -108,6 +115,11 @@ add_action( 'admin_menu', function () {
 		) );
 
 	} );
+
+	// Only show the shortcode filters page if there are filters registered.
+	if ( ! count( $applied_filters ) ) {
+		remove_submenu_page( 'shortcode-scrubber', 'shortcode-scrubber-filters' );
+	}
 
 	// Add shortcode management page
 	add_submenu_page(
