@@ -60,6 +60,7 @@ class ShortcodePostListTable extends \WP_List_Table {
 				'shortcodes' => find_shortcode_tags( $post->post_content ),
 				'title'      => get_the_title( $post ),
 				'post_type'  => get_post_type_object( $post->post_type )->labels->singular_name,
+				'post_status' => get_post_status_object( $post->post_status )->label,
 			);
 
 		}
@@ -81,10 +82,11 @@ class ShortcodePostListTable extends \WP_List_Table {
 	public function get_columns() {
 
 		return array(
-			'title'      => esc_html__( 'Title', 'shortcode-scrubber' ),
-			'post_type'  => esc_html__( 'Post Type', 'shortcode-scrubber' ),
-			'shortcodes' => esc_html__( 'Shortcodes In Use', 'shortcode-scrubber' ),
-			'date'       => esc_html__( 'Date', 'shortcode-scrubber' ),
+			'title'       => esc_html__( 'Title', 'shortcode-scrubber' ),
+			'post_type'   => esc_html__( 'Post Type', 'shortcode-scrubber' ),
+			'post_status' => esc_html__( 'Post Status', 'shortcode-scrubber' ),
+			'shortcodes'  => esc_html__( 'Shortcodes In Use', 'shortcode-scrubber' ),
+			'date'        => esc_html__( 'Date', 'shortcode-scrubber' ),
 		);
 
 	}
@@ -97,8 +99,9 @@ class ShortcodePostListTable extends \WP_List_Table {
 	public function get_sortable_columns() {
 
 		return array(
-			'title'     => array( 'title', true ),
-			'post_type' => array( 'post_type', false ),
+			'title'       => array( 'title', true ),
+			'post_type'   => array( 'post_type', false ),
+			'post_status' => array( 'post_status', false ),
 		);
 
 	}
@@ -255,7 +258,7 @@ class ShortcodePostListTable extends \WP_List_Table {
             <div class="alignleft actions">
 
                 <input type="hidden" name="page"
-                       value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
+                       value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>"/>
 
                 <label for="filter_post_type" class="screen-reader-text">
 					<?php esc_html_e( 'Filter By Post Type', 'shortcode-scrubber' ) ?>
@@ -287,7 +290,7 @@ class ShortcodePostListTable extends \WP_List_Table {
                 <input type="submit"
                        id="post-query-submit"
                        class="button"
-                       value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
+                       value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>"/>
 
             </div>
 			<?php
@@ -313,7 +316,7 @@ class ShortcodePostListTable extends \WP_List_Table {
             <p class="search-box">
                 <label>
                     <span class="screen-reader-text"><?php esc_html_e( 'Search by Shortcode', 'shortcode-scrubber' ); ?></span>
-                    <input type="search" name="s" value="<?php echo esc_attr( $filters['search'] ); ?>" />
+                    <input type="search" name="s" value="<?php echo esc_attr( $filters['search'] ); ?>"/>
                 </label>
                 <button class="button"><?php esc_html_e( 'Search by Shortcode', 'shortcode-scrubber' ); ?></button>
             </p>
