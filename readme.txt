@@ -25,6 +25,8 @@ The **Shortcode Scrubber** plugin allows to you to confidently manage plugins an
 
 If you answered yes to any of the questions above, then the Shortcode Scrubber can help!
 
+https://www.youtube.com/watch?v=cOjUfgkgvzA
+
 = Features =
 
 * When active, all broken shortcodes displayed on the site are automatically hidden.
@@ -63,6 +65,12 @@ Once the plugin is installed and activated, go to the 'Shortcodes' menu item in 
 Note: You must have the 'manage_options' capability to see the 'Shortcodes' menu item. Typically, only site administrators will have this capability.
 
 == Screenshots ==
+
+1. See all of the shortcodes registered in WordPress and easily find out where they may be in use.
+2. View all of the posts in WordPress (custom post types included) that have shortcodes. Shortcodes left behind by plugins and themes that are no longer in use are shown in red.
+3. View all of the widgets in WordPress that have shortcodes.  Shortcodes left behind by plugins and themes that are no longer in use are shown in red.
+4. Easily create shortcode filters that can control how, or if, shortcodes are shown on your site.
+5. Easily create shortcode filters that can control how, or if, shortcodes are shown on your site. Developers can create additional shortcode filter handlers.
 
 == Changelog ==
 
