@@ -1,6 +1,13 @@
 <?php
+/**
+ * Shortcode class.
+ *
+ * @package ShortcodeScrubber
+ */
 
 namespace ShortcodeScrubber;
+
+// phpcs:disable WordPress.NamingConventions.ValidFunctionName
 
 /**
  * Class Shortcode
@@ -42,7 +49,7 @@ class Shortcode {
 	/**
 	 * Shortcode constructor.
 	 *
-	 * @param $tag
+	 * @param string $tag Tag name
 	 */
 	public function __construct( $tag ) {
 		$this->tag = $tag;
@@ -86,12 +93,12 @@ class Shortcode {
 	 */
 	public function getPluginFile() {
 		$plugin_file = '';
-		$plugins = get_plugins();
-		$file = plugin_basename( $this->reflection->getFileName() );
+		$plugins     = get_plugins();
+		$file        = plugin_basename( $this->reflection->getFileName() );
 		if ( array_key_exists( $file, $plugins ) ) {
 			$plugin_file = $file;
 		} else {
-			$paths = explode( '/', $file );
+			$paths    = explode( '/', $file );
 			$root_dir = array_shift( $paths );
 			foreach ( $plugins as $path => $data ) {
 				if ( 0 === strpos( $path, $root_dir ) ) {
@@ -123,18 +130,15 @@ class Shortcode {
 
 					if ( is_string( $callback ) ) {
 						$this->reflection = new \ReflectionFunction( $callback );
-					} else if ( is_array( $callback ) ) {
+					} elseif ( is_array( $callback ) ) {
 						$this->reflection = new \ReflectionMethod( $callback[0], $callback[1] );
-					} else if ( is_object( $callback ) && ( $callback instanceof \Closure ) ) {
+					} elseif ( is_object( $callback ) && ( $callback instanceof \Closure ) ) {
 						$this->reflection = new \ReflectionFunction( $callback );
 					}
-
 				}
-
 			} catch ( \Exception $e ) {
-				trigger_error( $e->getMessage() );
+				trigger_error( $e->getMessage() ); // phpcs:ignore WordPress
 			}
-
 		}
 
 		return $this->reflection;
@@ -166,7 +170,7 @@ class Shortcode {
 				}
 
 				// WordPress Theme
-				$theme_dir = get_stylesheet_directory();
+				$theme_dir        = get_stylesheet_directory();
 				$parent_theme_dir = get_template_directory();
 
 				if ( 0 === strpos( $file_name, $theme_dir ) ) {
@@ -184,7 +188,6 @@ class Shortcode {
 			if ( empty( $this->context ) ) {
 				$this->context = null;
 			}
-
 		}
 
 		return $this->context;
@@ -206,7 +209,7 @@ class Shortcode {
 					break;
 
 				case 'plugin':
-					$plugins = get_plugins();
+					$plugins     = get_plugins();
 					$plugin_file = $this->getPluginFile();
 					if ( array_key_exists( $plugin_file, $plugins ) ) {
 						$this->provider = $plugins[ $plugin_file ]['Name'];
@@ -217,19 +220,18 @@ class Shortcode {
 
 				case 'theme':
 				case 'theme-child':
-					$theme = wp_get_theme( basename( get_stylesheet_directory() ) );
+					$theme          = wp_get_theme( basename( get_stylesheet_directory() ) );
 					$this->provider = $theme->name;
 					break;
 
 				case 'theme-parent':
-					$theme = wp_get_theme( basename( get_template_directory() ) );
+					$theme          = wp_get_theme( basename( get_template_directory() ) );
 					$this->provider = $theme->name;
 					break;
 
 				default:
 					$this->provider = __( 'Unknown', 'shortcode-scrubber' );
 			}
-
 		}
 
 		return $this->provider;

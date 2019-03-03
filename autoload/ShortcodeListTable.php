@@ -1,4 +1,9 @@
 <?php
+/**
+ * List table for displaying shortcodes.
+ *
+ * @package ShortcodeScrubber
+ */
 
 namespace ShortcodeScrubber;
 
@@ -14,11 +19,15 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 class ShortcodeListTable extends \WP_List_Table {
 
 	/**
+	 * Collection of shortcodes.
+	 *
 	 * @var ShortcodeCollection
 	 */
 	protected $collection;
 
 	/**
+	 * Collection of items.
+	 *
 	 * @var array
 	 */
 	public $items = [];
@@ -26,9 +35,9 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * ShortcodeListTable constructor.
 	 *
-	 * @param array $args
+	 * @param array $args Arguments
 	 *
-	 * @throws \InvalidArgumentException
+	 * @throws \InvalidArgumentException If shortcodes argument isn't set.
 	 */
 	public function __construct( $args = [] ) {
 
@@ -36,10 +45,15 @@ class ShortcodeListTable extends \WP_List_Table {
 			throw new \InvalidArgumentException( 'Must pass a ShortcodeCollection to $args["shortcodes"]' );
 		}
 
-		parent::__construct( array_merge( $args, [
-			'singular' => 'shortcode',
-			'plural'   => 'shortcodes',
-		] ) );
+		parent::__construct(
+			array_merge(
+				$args,
+				[
+					'singular' => 'shortcode',
+					'plural'   => 'shortcodes',
+				]
+			)
+		);
 
 	}
 
@@ -50,7 +64,7 @@ class ShortcodeListTable extends \WP_List_Table {
 
 		$items = [];
 
-		$this->collection = $this->_args['shortcodes'];
+		$this->collection      = $this->_args['shortcodes'];
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 
 		foreach ( $this->collection as $shortcode ) {
@@ -65,12 +79,14 @@ class ShortcodeListTable extends \WP_List_Table {
 		$items = $this->sort( $items );
 
 		$per_page = $this->get_items_per_page( 'shortcode_scrubber_items_per_page', 10 );
-		$offset = ( $this->get_pagenum() - 1 ) * $per_page;
+		$offset   = ( $this->get_pagenum() - 1 ) * $per_page;
 
-		$this->set_pagination_args( array(
-			'per_page'    => $per_page,
-			'total_items' => count( $items ),
-		) );
+		$this->set_pagination_args(
+			array(
+				'per_page'    => $per_page,
+				'total_items' => count( $items ),
+			)
+		);
 
 		$this->items = array_slice( $items, $offset, $per_page );
 
@@ -105,26 +121,29 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * Sort items
 	 *
-	 * @param array $items
+	 * @param array $items Items to be sorted
 	 *
 	 * @return array
 	 */
 	public function sort( $items ) {
 
-		$order = filter_input( INPUT_GET, 'order', FILTER_SANITIZE_STRING, [ 'options' => [ 'default' => 'asc' ] ] );
+		$order   = filter_input( INPUT_GET, 'order', FILTER_SANITIZE_STRING, [ 'options' => [ 'default' => 'asc' ] ] );
 		$orderby = filter_input( INPUT_GET, 'orderby', FILTER_SANITIZE_STRING, [ 'options' => [ 'default' => 'tag' ] ] );
 
 		if ( ! array_key_exists( $orderby, $this->get_columns() ) ) {
 			$orderby = $this->get_default_primary_column_name();
 		}
 
-		usort( $items, function ( $a, $b ) use ( $order, $orderby ) {
-			if ( 'asc' === $order ) {
-				return strcasecmp( $a[ $orderby ], $b[ $orderby ] );
-			}
+		usort(
+			$items,
+			function ( $a, $b ) use ( $order, $orderby ) {
+				if ( 'asc' === $order ) {
+					return strcasecmp( $a[ $orderby ], $b[ $orderby ] );
+				}
 
-			return strcasecmp( $b[ $orderby ], $a[ $orderby ] );
-		} );
+				return strcasecmp( $b[ $orderby ], $a[ $orderby ] );
+			}
+		);
 
 		return $items;
 	}
@@ -132,7 +151,7 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * Filter items
 	 *
-	 * @param array $items
+	 * @param array $items Items to be filtered
 	 *
 	 * @return array
 	 */
@@ -140,37 +159,40 @@ class ShortcodeListTable extends \WP_List_Table {
 
 		$filters = $this->get_filters();
 
-		return array_filter( $items, function ( $item ) use ( $filters ) {
+		return array_filter(
+			$items,
+			function ( $item ) use ( $filters ) {
 
-			$valid = true;
+				$valid = true;
 
-			// Filter by context
-			if ( ! empty( $filters['context'] ) ) {
+				// Filter by context
+				if ( ! empty( $filters['context'] ) ) {
 
-				if ( $item['context'] !== $filters['context'] ) {
+					if ( $item['context'] !== $filters['context'] ) {
+						$valid = false;
+					}
+
+					if ( 'theme' === $filters['context'] && 0 === strpos( $item['context'], 'theme' ) ) {
+						$valid = true;
+					}
+				}
+
+				// Filter by provider
+				if ( ! empty( $filters['provider'] ) && $item['provider'] !== $filters['provider'] ) {
 					$valid = false;
 				}
 
-				if ( 'theme' === $filters['context'] && 0 === strpos( $item['context'], 'theme' ) ) {
-					$valid = true;
-				}
+				return $valid;
+
 			}
-
-			// Filter by provider
-			if ( ! empty( $filters['provider'] && $item['provider'] !== $filters['provider'] ) ) {
-				$valid = false;
-			}
-
-			return $valid;
-
-		} );
+		);
 	}
 
 	/**
 	 * Default callback for column display
 	 *
-	 * @param array $item
-	 * @param string $column_name
+	 * @param array  $item Item
+	 * @param string $column_name Column name
 	 *
 	 * @return string
 	 */
@@ -181,7 +203,7 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * Callback for displaying the shortcode context column
 	 *
-	 * @param array $item
+	 * @param array $item Item
 	 *
 	 * @return string
 	 */
@@ -199,32 +221,41 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * Callback for displaying the shortcode tag column
 	 *
-	 * @param array $item
+	 * @param array $item Item
 	 *
 	 * @return string
 	 */
 	protected function column_tag( $item ) {
 
-		$manageUrl = add_query_arg( [
-			'page'      => 'shortcode-scrubber-manage',
-			'shortcode' => $item['tag'],
-		], admin_url( 'admin.php' ) );
+		$manage_url = add_query_arg(
+			[
+				'page'      => 'shortcode-scrubber-manage',
+				'shortcode' => $item['tag'],
+			],
+			admin_url( 'admin.php' )
+		);
 
-		$postUsageUrl = add_query_arg( [
-			'page'             => 'shortcode-scrubber-post-usages',
-			'filter_shortcode' => $item['tag'],
-		], admin_url( 'admin.php' ) );
+		$post_usage_url = add_query_arg(
+			[
+				'page'             => 'shortcode-scrubber-post-usages',
+				'filter_shortcode' => $item['tag'],
+			],
+			admin_url( 'admin.php' )
+		);
 
-		$widgetUsageUrl = add_query_arg( [
-			'page'             => 'shortcode-scrubber-widget-usages',
-			'filter_shortcode' => $item['tag'],
-		], admin_url( 'admin.php' ) );
+		$widget_usage_url = add_query_arg(
+			[
+				'page'             => 'shortcode-scrubber-widget-usages',
+				'filter_shortcode' => $item['tag'],
+			],
+			admin_url( 'admin.php' )
+		);
 
 		$actions = [
-			'manage'       => '<a href="' . esc_url( $manageUrl ) . '">' . esc_html__( 'Manage', 'shortcode-scrubber' ) . '</a>',
-			'find_posts'   => '<a href="' . esc_url( $postUsageUrl ) . '">' . esc_html__( 'Find Post Usages', 'shortcode-scrubber' ) . '</a>',
-			'find_widgets' => '<a href="' . esc_url( $widgetUsageUrl ) . '">' . esc_html__( 'Find Widget Usages', 'shortcode-scrubber' ) . '</a>',
-			//'docs'    => '<a href="' . esc_url( ... ) . '">' . esc_html__( 'Documentation', 'shortcode-scrubber' ) . '</a>',
+			'manage'       => '<a href="' . esc_url( $manage_url ) . '">' . esc_html__( 'Manage', 'shortcode-scrubber' ) . '</a>',
+			'find_posts'   => '<a href="' . esc_url( $post_usage_url ) . '">' . esc_html__( 'Find Post Usages', 'shortcode-scrubber' ) . '</a>',
+			'find_widgets' => '<a href="' . esc_url( $widget_usage_url ) . '">' . esc_html__( 'Find Widget Usages', 'shortcode-scrubber' ) . '</a>',
+			// 'docs' => '<a href="' . esc_url( ... ) . '">' . esc_html__( 'Documentation', 'shortcode-scrubber' ) . '</a>',
 		];
 
 		return esc_html( '[' . $item['tag'] . ']' ) . $this->row_actions( $actions );
@@ -282,7 +313,7 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * Generate the table nav above or below the table
 	 *
-	 * @param string $which
+	 * @param string $which Name of table nav
 	 */
 	protected function display_tablenav( $which ) {
 
@@ -298,7 +329,7 @@ class ShortcodeListTable extends \WP_List_Table {
 	/**
 	 * Display filter dropdowns in table nav
 	 *
-	 * @param string $which
+	 * @param string $which Name of table nav
 	 */
 	protected function extra_tablenav( $which ) {
 
@@ -308,43 +339,43 @@ class ShortcodeListTable extends \WP_List_Table {
 
 		$filters = $this->get_filters();
 		?>
-        <div class="alignleft actions">
-            <form method="get">
+		<div class="alignleft actions">
+			<form method="get">
 
-                <input type="hidden" name="page"
-                       value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
+				<input type="hidden" name="page"
+						value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
 
-                <label for="filter_context" class="screen-reader-text">
+				<label for="filter_context" class="screen-reader-text">
 					<?php esc_html_e( 'Filter By Context', 'shortcode-scrubber' ); ?>
-                </label>
-                <select id="filter_context" name="filter_context">
-                    <option value=""><?php esc_html_e( 'Filter By Context', 'shortcode-scrubber' ) ?></option>
+				</label>
+				<select id="filter_context" name="filter_context">
+					<option value=""><?php esc_html_e( 'Filter By Context', 'shortcode-scrubber' ); ?></option>
 					<?php foreach ( $this->get_contexts() as $value => $label ) : ?>
-                        <option value="<?php echo esc_html( $value ); ?>" <?php selected( $filters['context'], $value ); ?> >
+						<option value="<?php echo esc_html( $value ); ?>" <?php selected( $filters['context'], $value ); ?> >
 							<?php echo esc_html( $label ); ?>
-                        </option>
+						</option>
 					<?php endforeach; ?>
-                </select>
+				</select>
 
-                <label for="filter_provider" class="screen-reader-text">
+				<label for="filter_provider" class="screen-reader-text">
 					<?php esc_html_e( 'Filter By Provider', 'shortcode-scrubber' ); ?>
-                </label>
-                <select id="filter_provider" name="filter_provider">
-                    <option value=""><?php esc_html_e( 'Filter By Provider', 'shortcode-scrubber' ); ?></option>
+				</label>
+				<select id="filter_provider" name="filter_provider">
+					<option value=""><?php esc_html_e( 'Filter By Provider', 'shortcode-scrubber' ); ?></option>
 					<?php foreach ( $this->get_providers() as $value ) : ?>
-                        <option value="<?php echo esc_html( $value ); ?>" <?php selected( $filters['provider'], $value ); ?> >
+						<option value="<?php echo esc_html( $value ); ?>" <?php selected( $filters['provider'], $value ); ?> >
 							<?php echo esc_html( $value ); ?>
-                        </option>
+						</option>
 					<?php endforeach; ?>
-                </select>
+				</select>
 
-                <input type="submit"
-                       id="post-query-submit"
-                       class="button"
-                       value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
+				<input type="submit"
+						id="post-query-submit"
+						class="button"
+						value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
 
-            </form>
-        </div>
+			</form>
+		</div>
 		<?php
 	}
 

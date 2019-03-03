@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class that runs checks before loding possibly incompatible code.
+ *
+ * @package ShortcodeScrubber
+ */
 
 /**
  * Class Shortcode_Scrubber_Plugin_Check
@@ -12,54 +17,56 @@ class Shortcode_Scrubber_Plugin_Check {
 	 *
 	 * @var array
 	 */
-	var $callbacks = array();
+	public $callbacks = array();
 
 	/**
+	 * Collection of errors
+	 *
 	 * @var \WP_Error
 	 */
-	var $errors;
+	public $errors;
 
 	/**
 	 * A reference to the main plugin file
 	 *
 	 * @var string
 	 */
-	var $file;
+	public $file;
 
 	/**
 	 * Minimum PHP version required for this plugin
 	 *
 	 * @var string
 	 */
-	var $min_php_version;
+	public $min_php_version;
 
 	/**
 	 * Minimum WordPress version required for this plugin
 	 *
 	 * @var string
 	 */
-	var $min_wp_version;
+	public $min_wp_version;
 
 	/**
 	 * Plugin name
 	 *
 	 * @var string
 	 */
-	var $name = '';
+	public $name = '';
 
 	/**
 	 * Required PHP extensions
 	 *
 	 * @var array
 	 */
-	var $req_php_extensions = array();
+	public $req_php_extensions = array();
 
 	/**
 	 * Setup our class properties
 	 *
-	 * @param string $file
+	 * @param string $file Plugin file
 	 */
-	function __construct( $file ) {
+	public function __construct( $file ) {
 		$this->errors = new \WP_Error();
 		$this->file   = $file;
 		$this->name   = $this->get_plugin_name();
@@ -70,7 +77,7 @@ class Shortcode_Scrubber_Plugin_Check {
 	 *
 	 * @return string
 	 */
-	function get_plugin_name() {
+	public function get_plugin_name() {
 		$plugin = get_file_data( $this->file, array( 'name' => 'Plugin Name' ) );
 
 		return isset( $plugin['name'] ) ? $plugin['name'] : '';
@@ -80,7 +87,7 @@ class Shortcode_Scrubber_Plugin_Check {
 	 * Check all our plugin requirements.
 	 * Displays an admin notice and deactivates the plugin if all requirements are not met.
 	 */
-	function check_plugin_requirements() {
+	public function check_plugin_requirements() {
 		if ( isset( $this->min_php_version ) ) {
 			$this->check_has_min_php_version();
 		}
@@ -107,15 +114,11 @@ class Shortcode_Scrubber_Plugin_Check {
 	/**
 	 * Check if the minimum required PHP version is available
 	 */
-	function check_has_min_php_version() {
+	public function check_has_min_php_version() {
 		if ( version_compare( PHP_VERSION, $this->min_php_version, '<' ) ) {
-			$error_msg = sprintf(
-				__( '%s requires PHP version %s or later. You are currently running version %s.', 'shortcode-scrubber' ),
-				$this->name,
-				$this->min_php_version,
-				PHP_VERSION
-			);
-			$error_msg .= __( ' Please contact your web host about upgrading PHP.', 'shortcode-scrubber' );
+			/* translators: 1: plugin name 2: minimum required PHP version, current PHP version */
+			$error_msg  = sprintf( __( '%1$s requires PHP version %2$s or later. You are currently running version %3$s.', 'shortcode-scrubber' ), $this->name, $this->min_php_version, PHP_VERSION );
+			$error_msg .= esc_html__( ' Please contact your web host about upgrading PHP.', 'shortcode-scrubber' );
 			$this->errors->add( 'php_version', $error_msg );
 		}
 	}
@@ -124,16 +127,13 @@ class Shortcode_Scrubber_Plugin_Check {
 	 * Check if a required PHP extension is available.
 	 * See http://www.php.net/manual/en/extensions.alphabetical.php for a full list.
 	 */
-	function check_has_required_php_extensions() {
+	public function check_has_required_php_extensions() {
 		foreach ( $this->req_php_extensions as $extension ) {
 			if ( ! extension_loaded( $extension ) ) {
 				$this->errors->add(
 					'php_extension',
-					sprintf(
-						__( '%s requires the %s PHP extension.', 'shortcode-scrubber' ),
-						$this->name,
-						$extension
-					)
+					/* translators: 1: plugin name 2: required PHP extension */
+					sprintf( __( '%1$s requires the %2$s PHP extension.', 'shortcode-scrubber' ), $this->name, $extension )
 				);
 			}
 		}
@@ -142,13 +142,14 @@ class Shortcode_Scrubber_Plugin_Check {
 	/**
 	 * Check if the minimum required WordPress version is available
 	 */
-	function check_has_min_wp_version() {
+	public function check_has_min_wp_version() {
 		global $wp_version;
 		if ( version_compare( $wp_version, $this->min_wp_version, '<' ) ) {
 			$this->errors->add(
 				'wp_version',
 				sprintf(
-					__( '%s requires WordPress version %s or later. You are currently running version %s.', 'shortcode-scrubber' ),
+					/* translators: 1: plugin name 2: minimum required WordPress version 3: current WordPress version */
+					__( '%1$s requires WordPress version %2$s or later. You are currently running version %3$s.', 'shortcode-scrubber' ),
 					$this->name,
 					$this->min_wp_version,
 					$wp_version
@@ -162,15 +163,15 @@ class Shortcode_Scrubber_Plugin_Check {
 	 *
 	 * @return bool
 	 */
-	function has_errors() {
-		return (boolean) count( $this->errors->errors );
+	public function has_errors() {
+		return (bool) count( $this->errors->errors );
 	}
 
 	/**
 	 * Deactivate the plugin
 	 */
-	function deactivate() {
-		require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+	public function deactivate() {
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 		if ( function_exists( 'deactivate_plugins' ) ) {
 			deactivate_plugins( $this->file );
 		}
@@ -179,16 +180,15 @@ class Shortcode_Scrubber_Plugin_Check {
 	/**
 	 * Display error messages in the admin
 	 */
-	function admin_notices() {
+	public function admin_notices() {
 		echo '<div class="error">';
 		foreach ( $this->errors->get_error_messages() as $msg ) {
-			echo '<p>' . $msg . '</p>';
+			echo '<p>' . esc_html( $msg ) . '</p>';
 		}
-		printf(
-			__( '<p>The <strong>%s</strong> plugin has been deactivated.</p>', 'shortcode-scrubber' ),
-			$this->name
-		);
-		echo '</div>';
+		echo '<p>';
+		/* translators: plugin name */
+		printf( esc_html__( 'The "%s" plugin has been deactivated.', 'shortcode-scrubber' ), esc_html( $this->name ) );
+		echo '</p></div>';
 	}
 
 }

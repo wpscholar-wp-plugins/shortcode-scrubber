@@ -1,4 +1,9 @@
 <?php
+/**
+ * List table for displaying shortcode filters.
+ *
+ * @package ShortcodeScrubber
+ */
 
 namespace ShortcodeScrubber;
 
@@ -14,6 +19,8 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 class ShortcodeFilterListTable extends \WP_List_Table {
 
 	/**
+	 * Collection of items.
+	 *
 	 * @var array
 	 */
 	public $items = [];
@@ -21,13 +28,15 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * ShortcodePostListTable constructor.
 	 *
-	 * @param array $args
+	 * @param array $args Arguments
 	 */
 	public function __construct( $args = [] ) {
-		parent::__construct( [
-			'singular' => 'filter',
-			'plural'   => 'filters',
-		] );
+		parent::__construct(
+			[
+				'singular' => 'filter',
+				'plural'   => 'filters',
+			]
+		);
 	}
 
 	/**
@@ -40,7 +49,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 
 		$shortcode_filters = get_shortcode_filters();
-		$applied_filters = (array) Options::get( 'applied_filters', [] );
+		$applied_filters   = (array) Options::get( 'applied_filters', [] );
 
 		foreach ( $applied_filters as $shortcode => $id ) {
 			if ( isset( $shortcode_filters[ $id ] ) ) {
@@ -58,12 +67,12 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 		$items = $this->sort( $items );
 
 		$per_page = $this->get_items_per_page( 'shortcode_scrubber_filters_per_page', 10 );
-		$offset = ( $this->get_pagenum() - 1 ) * $per_page;
+		$offset   = ( $this->get_pagenum() - 1 ) * $per_page;
 
 		$this->set_pagination_args(
 			array(
 				'per_page'    => $per_page,
-				'total_items' => count( $items )
+				'total_items' => count( $items ),
 			)
 		);
 
@@ -74,27 +83,30 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * Sort items
 	 *
-	 * @param array $items
+	 * @param array $items Items to be sorted
 	 *
 	 * @return array
 	 */
 	public function sort( array $items ) {
 
-		$order = filter_input( INPUT_GET, 'order', FILTER_SANITIZE_STRING, [ 'options' => [ 'default' => 'asc' ] ] );
+		$order   = filter_input( INPUT_GET, 'order', FILTER_SANITIZE_STRING, [ 'options' => [ 'default' => 'asc' ] ] );
 		$orderby = filter_input( INPUT_GET, 'orderby', FILTER_SANITIZE_STRING, [ 'options' => [ 'default' => 'title' ] ] );
 
 		if ( ! array_key_exists( $orderby, $this->get_columns() ) ) {
 			$orderby = $this->get_default_primary_column_name();
 		}
 
-		usort( $items, function ( $a, $b ) use ( $order, $orderby ) {
+		usort(
+			$items,
+			function ( $a, $b ) use ( $order, $orderby ) {
 
-			if ( 'asc' === $order ) {
-				return strcasecmp( $a[ $orderby ], $b[ $orderby ] );
+				if ( 'asc' === $order ) {
+					return strcasecmp( $a[ $orderby ], $b[ $orderby ] );
+				}
+
+				return strcasecmp( $b[ $orderby ], $a[ $orderby ] );
 			}
-
-			return strcasecmp( $b[ $orderby ], $a[ $orderby ] );
-		} );
+		);
 
 		return $items;
 	}
@@ -102,7 +114,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * Filter items
 	 *
-	 * @param array $items
+	 * @param array $items Items to be filtered
 	 *
 	 * @return array
 	 */
@@ -110,21 +122,24 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 
 		$filters = $this->get_filters();
 
-		return array_filter( $items, function ( $item ) use ( $filters ) {
-			$valid = true;
+		return array_filter(
+			$items,
+			function ( $item ) use ( $filters ) {
+				$valid = true;
 
-			// Filter by shortcode
-			if ( ! empty( $filters['shortcode'] ) && $item['shortcode'] !== $filters['shortcode'] ) {
-				$valid = false;
+				// Filter by shortcode
+				if ( ! empty( $filters['shortcode'] ) && $item['shortcode'] !== $filters['shortcode'] ) {
+					$valid = false;
+				}
+
+				// Filter by filter
+				if ( ! empty( $filters['filter'] ) && $item['filter_id'] !== $filters['filter'] ) {
+					$valid = false;
+				}
+
+				return $valid;
 			}
-
-			// Filter by filter
-			if ( ! empty( $filters['filter'] && $item['filter_id'] !== $filters['filter'] ) ) {
-				$valid = false;
-			}
-
-			return $valid;
-		} );
+		);
 	}
 
 	/**
@@ -158,8 +173,8 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * Default callback for column display
 	 *
-	 * @param array $item
-	 * @param string $column_name
+	 * @param array  $item Items
+	 * @param string $column_name Column name
 	 *
 	 * @return null|string
 	 */
@@ -170,7 +185,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * Callback for displaying the title column
 	 *
-	 * @param array $item
+	 * @param array $item Item
 	 *
 	 * @return string
 	 */
@@ -212,7 +227,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * Generate the table nav above or below the table
 	 *
-	 * @param string $which
+	 * @param string $which Name of table nav
 	 */
 	protected function display_tablenav( $which ) {
 
@@ -228,7 +243,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	/**
 	 * Display filter dropdowns in the table nav
 	 *
-	 * @param string $which
+	 * @param string $which Name of table nav
 	 */
 	protected function extra_tablenav( $which ) {
 
@@ -236,48 +251,48 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 
 			$filters = $this->get_filters();
 
-			$shortcodes = array_keys( Options::get( 'applied_filters', [] ) );
+			$shortcodes        = array_keys( Options::get( 'applied_filters', [] ) );
 			$shortcode_filters = get_shortcode_filters();
 
 			asort( $shortcodes );
 			asort( $shortcode_filters );
 
 			?>
-            <div class="alignleft actions">
+			<div class="alignleft actions">
 
-                <input type="hidden" name="page"
-                       value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
+				<input type="hidden" name="page"
+						value="<?php echo esc_attr( filter_input( INPUT_GET, 'page' ) ); ?>" />
 
-                <label for="filter_shortcode" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_shortcode" name="filter_shortcode">
-                    <option value=""><?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?></option>
+				<label for="filter_shortcode" class="screen-reader-text">
+					<?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?>
+				</label>
+				<select id="filter_shortcode" name="filter_shortcode">
+					<option value=""><?php esc_html_e( 'Filter By Shortcode', 'shortcode-scrubber' ); ?></option>
 					<?php foreach ( $shortcodes as $shortcode ) : ?>
-                        <option value="<?php echo esc_html( $shortcode ); ?>" <?php selected( $filters['shortcode'], $shortcode ); ?> >
-                            [<?php echo esc_html( $shortcode ); ?>]
-                        </option>
+						<option value="<?php echo esc_html( $shortcode ); ?>" <?php selected( $filters['shortcode'], $shortcode ); ?> >
+							[<?php echo esc_html( $shortcode ); ?>]
+						</option>
 					<?php endforeach; ?>
-                </select>
+				</select>
 
-                <label for="filter_shortcode_filter" class="screen-reader-text">
-					<?php esc_html_e( 'Filter By Widget Area', 'shortcode-scrubber' ) ?>
-                </label>
-                <select id="filter_shortcode_filter" name="filter_shortcode_filter">
-                    <option value=""><?php esc_html_e( 'Filter By Shortcode Filter', 'shortcode-scrubber' ) ?></option>
+				<label for="filter_shortcode_filter" class="screen-reader-text">
+					<?php esc_html_e( 'Filter By Widget Area', 'shortcode-scrubber' ); ?>
+				</label>
+				<select id="filter_shortcode_filter" name="filter_shortcode_filter">
+					<option value=""><?php esc_html_e( 'Filter By Shortcode Filter', 'shortcode-scrubber' ); ?></option>
 					<?php foreach ( $shortcode_filters as $shortcode_filter ) : ?>
-                        <option value="<?php echo esc_html( $shortcode_filter->id ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_shortcode_filter' ), $shortcode_filter->id ); ?>>
+						<option value="<?php echo esc_html( $shortcode_filter->id ); ?>"<?php selected( filter_input( INPUT_GET, 'filter_shortcode_filter' ), $shortcode_filter->id ); ?>>
 							<?php echo esc_html( $shortcode_filter->label ); ?>
-                        </option>
+						</option>
 					<?php endforeach; ?>
-                </select>
+				</select>
 
-                <input type="submit"
-                       id="post-query-submit"
-                       class="button"
-                       value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
+				<input type="submit"
+						id="post-query-submit"
+						class="button"
+						value="<?php esc_attr_e( 'Filter', 'shortcode-scrubber' ); ?>" />
 
-            </div>
+			</div>
 			<?php
 		} else {
 			printf( '<span>*%s</span>', esc_html__( 'Shortcodes displayed in red are not registered in WordPress.', 'shortcode-scrubber' ) );
@@ -298,16 +313,16 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	public function display() {
 		$filters = $this->get_filters();
 		?>
-        <form method="get">
-            <p class="search-box">
-                <label>
-                    <span class="screen-reader-text"><?php esc_html_e( 'Search by Shortcode', 'shortcode-scrubber' ); ?></span>
-                    <input type="search" name="s" value="<?php echo esc_attr( $filters['search'] ); ?>" />
-                </label>
-                <button class="button"><?php esc_html_e( 'Search by Shortcode', 'shortcode-scrubber' ); ?></button>
-            </p>
+		<form method="get">
+			<p class="search-box">
+				<label>
+					<span class="screen-reader-text"><?php esc_html_e( 'Search by Shortcode', 'shortcode-scrubber' ); ?></span>
+					<input type="search" name="s" value="<?php echo esc_attr( $filters['search'] ); ?>" />
+				</label>
+				<button class="button"><?php esc_html_e( 'Search by Shortcode', 'shortcode-scrubber' ); ?></button>
+			</p>
 			<?php parent::display(); ?>
-        </form>
+		</form>
 		<?php
 	}
 
@@ -318,7 +333,7 @@ class ShortcodeFilterListTable extends \WP_List_Table {
 	 */
 	public function get_filters() {
 
-		$search = trim( filter_input( INPUT_GET, 's', FILTER_SANITIZE_STRING ), '[]' );
+		$search    = trim( filter_input( INPUT_GET, 's', FILTER_SANITIZE_STRING ), '[]' );
 		$shortcode = filter_input( INPUT_GET, 'filter_shortcode', FILTER_SANITIZE_STRING );
 
 		return array(

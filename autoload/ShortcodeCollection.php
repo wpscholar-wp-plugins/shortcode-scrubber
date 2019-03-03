@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shortcode collection class.
+ *
+ * @package ShortcodeScrubber
+ */
 
 namespace ShortcodeScrubber;
 

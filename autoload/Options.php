@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class for handling plugin options.
+ *
+ * @package ShortcodeScrubber
+ */
 
 namespace ShortcodeScrubber;
 
@@ -26,7 +31,7 @@ class Options {
 	/**
 	 * Check if option exists
 	 *
-	 * @param string $name
+	 * @param string $name Option name
 	 *
 	 * @return bool
 	 */
@@ -42,8 +47,8 @@ class Options {
 	/**
 	 * Get option value
 	 *
-	 * @param string $name
-	 * @param mixed $default
+	 * @param string $name Option name
+	 * @param mixed  $default Default value
 	 *
 	 * @return mixed
 	 */
@@ -65,8 +70,8 @@ class Options {
 	/**
 	 * Set option value
 	 *
-	 * @param string $name
-	 * @param mixed $value
+	 * @param string $name Option name
+	 * @param mixed  $value Value
 	 */
 	public static function set( $name, $value ) {
 		if ( ! isset( self::$options ) ) {
@@ -81,7 +86,7 @@ class Options {
 	/**
 	 * Delete option
 	 *
-	 * @param string $name
+	 * @param string $name Option name
 	 */
 	public static function delete( $name ) {
 		if ( ! isset( self::$options ) ) {

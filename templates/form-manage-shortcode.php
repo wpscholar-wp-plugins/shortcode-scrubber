@@ -1,4 +1,9 @@
 <?php
+/**
+ * Form for managing shortcode filters.
+ *
+ * @package ShortcodeScrubber
+ */
 
 namespace ShortcodeScrubber;
 
@@ -7,15 +12,15 @@ if ( empty( $current_shortcode ) ) {
 	$current_shortcode = filter_input( INPUT_GET, 's', FILTER_SANITIZE_STRING );
 }
 
-$filters = get_actionable_shortcode_filters( $current_shortcode );
+$filters         = get_actionable_shortcode_filters( $current_shortcode );
 $applied_filters = Options::get( 'applied_filters', [] );
 
-if ( isset( $_POST['apply'] ) ) {
-	$shortcode = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
+if ( isset( $_POST['apply'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	$shortcode       = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
 	$filter_to_apply = filter_input( INPUT_POST, 'shortcode-filter', FILTER_SANITIZE_STRING );
 	if ( $shortcode && $filter_to_apply ) {
 		activate_shortcode_filter( $shortcode, $filter_to_apply );
-		if ( isset( $_POST['persist'] ) ) {
+		if ( isset( $_POST['persist'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			freeze_shortcode( $shortcode );
 			deactivate_shortcode_filter( $shortcode );
 		}
@@ -26,7 +31,7 @@ if ( isset( $_POST['apply'] ) ) {
 			esc_html__( 'View all filters', 'shortcode-scrubber' )
 		);
 	}
-} else if ( isset( $_POST['clear'] ) ) {
+} elseif ( isset( $_POST['clear'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 	$shortcode = filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_STRING );
 	if ( $shortcode ) {
 		deactivate_shortcode_filter( $shortcode );
@@ -44,100 +49,97 @@ if ( isset( $_POST['apply'] ) ) {
 ?>
 <form id="shortcode-scrubber-manage" method="post">
 
-    <h2>
-		<?php printf( esc_html__( 'Shortcode: %s', 'shortcode-scrubber' ), esc_html( '[' . $current_shortcode . ']' ) ); ?>
-    </h2>
+	<h2>
+		<?php
+		/* translators: shortcode name */
+		printf( esc_html__( 'Shortcode: %s', 'shortcode-scrubber' ), esc_html( '[' . $current_shortcode . ']' ) );
+		?>
+	</h2>
 
-    <fieldset class="field field-radio-group">
+	<fieldset class="field field-radio-group">
 
-        <legend><?php esc_html_e( 'Select the filter you would like to apply:', 'shortcode-scrubber' ); ?></legend>
+		<legend><?php esc_html_e( 'Select the filter you would like to apply:', 'shortcode-scrubber' ); ?></legend>
 
-		<?php foreach ( $filters as $filter ): ?>
-            <div class="field field-radio">
-                <label>
-                    <input<?php checked( isset( $applied_filters[ $current_shortcode ] ) && $filter->id === $applied_filters[ $current_shortcode ] ); ?>
-                            type="radio"
-                            name="shortcode-filter"
-                            value="<?php echo esc_attr( $filter->id ); ?>"
-                    />
-                    <span><?php echo esc_html( $filter->label ); ?></span>
-                </label>
-				<?php if ( isset( $filter->description ) ): ?>
-                    <p class="field__description"><?php echo esc_html( $filter->description ); ?></p>
+		<?php foreach ( $filters as $filter ) : ?>
+			<div class="field field-radio">
+				<label>
+					<input<?php checked( isset( $applied_filters[ $current_shortcode ] ) && $filter->id === $applied_filters[ $current_shortcode ] ); ?> type="radio" name="shortcode-filter" value="<?php echo esc_attr( $filter->id ); ?>" />
+					<span><?php echo esc_html( $filter->label ); ?></span>
+				</label>
+				<?php if ( isset( $filter->description ) ) : ?>
+					<p class="field__description"><?php echo esc_html( $filter->description ); ?></p>
 				<?php endif; ?>
-            </div>
+			</div>
 		<?php endforeach; ?>
 
-    </fieldset>
+	</fieldset>
 
-    <a href="#advanced-options"
-       onclick="shortcodeScrubberToggleElement('advanced-options')">
+	<a href="#advanced-options" onclick="shortcodeScrubberToggleElement('advanced-options')">
 		<?php esc_html_e( 'Advanced Options', 'shortcode-scrubber' ); ?>
-    </a>
+	</a>
 
-    <div id="advanced-options" style="display:none;">
-        <div class="field">
-            <label>
-                <input type="checkbox" name="persist" value="true" />
-                <span><?php esc_html_e( 'Apply this filter permanently', 'shortcode-scrubber' ); ?></span>
-            </label>
-            <p class="field__description danger"><?php esc_html_e( 'This operation is irreversible! By selecting this option, you verify that you have a recent backup of your database.', 'shortcode-scrubber' ); ?></p>
-        </div>
-    </div>
+	<div id="advanced-options" style="display:none;">
+		<div class="field">
+			<label>
+				<input type="checkbox" name="persist" value="true" />
+				<span><?php esc_html_e( 'Apply this filter permanently', 'shortcode-scrubber' ); ?></span>
+			</label>
+			<p class="field__description danger"><?php esc_html_e( 'This operation is irreversible! By selecting this option, you verify that you have a recent backup of your database.', 'shortcode-scrubber' ); ?></p>
+		</div>
+	</div>
 
-    <p>
+	<p>
 		<?php submit_button( esc_html__( 'Apply', 'shortcode-scrubber' ), 'primary', 'apply', false ); ?>
 		<?php submit_button( esc_html__( 'Clear', 'shortcode-scrubber' ), 'secondary', 'clear', false ); ?>
-        <a class="alignright"
-           href="<?php echo esc_url( add_query_arg( 'page', 'shortcode-scrubber-manage', admin_url( 'admin.php' ) ) ); ?>">
+		<a class="alignright" href="<?php echo esc_url( add_query_arg( 'page', 'shortcode-scrubber-manage', admin_url( 'admin.php' ) ) ); ?>">
 			<?php esc_html_e( 'Cancel', 'shortcode-scrubber' ); ?>
-        </a>
-    </p>
+		</a>
+	</p>
 
-    <input type="hidden" name="shortcode" value="<?php echo esc_attr( $current_shortcode ); ?>" />
+	<input type="hidden" name="shortcode" value="<?php echo esc_attr( $current_shortcode ); ?>" />
 
 </form>
 
 <style>
-    #shortcode-scrubber-manage {
-        background: white;
-        padding: 1em 2em;
-        margin: 1em 0;
-        border: 1px solid #ccc;
-    }
+	#shortcode-scrubber-manage {
+		background: white;
+		padding: 1em 2em;
+		margin: 1em 0;
+		border: 1px solid #ccc;
+	}
 
-    #shortcode-scrubber-manage .danger {
-        color: red !important;
-    }
+	#shortcode-scrubber-manage .danger {
+		color: red !important;
+	}
 
-    #shortcode-scrubber-manage legend {
-        font-weight: bold;
-    }
+	#shortcode-scrubber-manage legend {
+		font-weight: bold;
+	}
 
-    #shortcode-scrubber-manage .field {
-        display: block;
-        margin: 1em 0;
-    }
+	#shortcode-scrubber-manage .field {
+		display: block;
+		margin: 1em 0;
+	}
 
-    #shortcode-scrubber-manage .field-radio {
-        margin-left: 1em;
-    }
+	#shortcode-scrubber-manage .field-radio {
+		margin-left: 1em;
+	}
 
-    #shortcode-scrubber-manage .field__description {
-        font-style: italic;
-        color: #666;
-        margin: .25em 0 0 1.8em;
-    }
+	#shortcode-scrubber-manage .field__description {
+		font-style: italic;
+		color: #666;
+		margin: .25em 0 0 1.8em;
+	}
 </style>
 
 <script>
-    function shortcodeScrubberToggleElement(id) {
-        const el = document.getElementById(id);
-        let display = el.style.display;
-        if ('none' === display) {
-            el.style.display = 'block';
-        } else {
-            el.style.display = 'none';
-        }
-    }
+	function shortcodeScrubberToggleElement(id) {
+		const el = document.getElementById(id);
+		let display = el.style.display;
+		if ('none' === display) {
+			el.style.display = 'block';
+		} else {
+			el.style.display = 'none';
+		}
+	}
 </script>
