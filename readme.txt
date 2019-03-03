@@ -1,5 +1,5 @@
 === Shortcode Scrubber ===
-Contributors: woodent, wpscholar
+Contributors: wpscholar
 Donate link: https://www.paypal.me/wpscholar
 Tags: shortcode
 Requires PHP: 5.6
