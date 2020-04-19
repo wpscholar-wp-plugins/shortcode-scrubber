@@ -5,6 +5,11 @@
  * @package ShortcodeScrubber
  */
 
+// Load translations
+add_action( 'plugins_loaded', function () {
+	load_plugin_textdomain( basename( __DIR__ ), false, basename( __DIR__ ) . '/languages/' );
+} );
+
 // Magically enable nested shortcodes for shortcodes that don't support it
 add_filter( 'do_shortcode_tag', 'do_shortcode' );
 
