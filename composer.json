@@ -1,13 +1,12 @@
 {
-    "name": "wpscholar/shortcode-scrubber",
-    "description": "A powerful tool for cleaning up shortcodes on your site and confidently managing plugins and themes that use shortcodes.",
-    "type": "wordpress-plugin",
-    "license": "GPL-2.0-or-later",
-    "authors": [
-        {
-            "name": "Micah Wood",
-            "email": "micah@wpscholar.com"
-        }
-    ],
-    "require": {}
+  "name": "wpscholar/shortcode-scrubber",
+  "description": "A powerful tool for cleaning up shortcodes on your site and confidently managing plugins and themes that use shortcodes.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Micah Wood",
+      "email": "micah@wpscholar.com"
+    }
+  ]
 }
