@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Plugin Name: Shortcode Scrubber
  * Plugin URI: https://wpscholar.com/wordpress-plugins/shortcode-scrubber/
@@ -7,8 +6,8 @@
  * Version: 1.0.1
  * Author: Micah Wood
  * Author URI:  https://wpscholar.com
- * Requires at least:
- * Requires PHP:
+ * Requires at least: 3.2
+ * Requires PHP: 5.6
  * Text Domain: shortcode-scrubber
  * Domain Path: languages
  * License: GPL3
