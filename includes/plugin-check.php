@@ -105,7 +105,8 @@ class Shortcode_Scrubber_Plugin_Check {
 			}
 		}
 		if ( $this->has_errors() ) {
-			unset( $_GET['activate'] ); // Suppress 'Plugin Activated' notice
+			// Suppress 'Plugin Activated' notice
+			unset( $_GET['activate'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$this->deactivate();
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 		}

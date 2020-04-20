@@ -141,7 +141,7 @@ class ShortcodePostListTable extends \WP_List_Table {
 			$t_time    = $h_time;
 			$time_diff = 0;
 		} else {
-			$t_time = get_the_time( __( 'Y/m/d g:i:s a' ), $post );
+			$t_time = get_the_time( __( 'Y/m/d g:i:s a', 'shortcode-scrubber' ), $post );
 			$m_time = $post->post_date;
 			$time   = get_post_time( 'G', true, $post );
 
@@ -149,22 +149,22 @@ class ShortcodePostListTable extends \WP_List_Table {
 
 			if ( $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
 				/* translators: human time diff */
-				$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
+				$h_time = sprintf( __( '%s ago', 'shortcode-scrubber' ), human_time_diff( $time ) );
 			} else {
-				$h_time = mysql2date( __( 'Y/m/d' ), $m_time );
+				$h_time = mysql2date( __( 'Y/m/d', 'shortcode-scrubber' ), $m_time );
 			}
 		}
 
 		if ( 'publish' === $post->post_status ) {
-			$status = __( 'Published' );
+			$status = __( 'Published', 'shortcode-scrubber' );
 		} elseif ( 'future' === $post->post_status ) {
 			if ( $time_diff > 0 ) {
-				$status = '<strong class="error-message">' . __( 'Missed schedule' ) . '</strong>';
+				$status = '<strong class="error-message">' . __( 'Missed schedule', 'shortcode-scrubber' ) . '</strong>';
 			} else {
-				$status = __( 'Scheduled' );
+				$status = __( 'Scheduled', 'shortcode-scrubber' );
 			}
 		} else {
-			$status = __( 'Last Modified' );
+			$status = __( 'Last Modified', 'shortcode-scrubber' );
 		}
 
 		$status = apply_filters( 'post_date_column_status', $status, $post, 'date', 'list' );
