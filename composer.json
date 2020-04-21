@@ -19,5 +19,8 @@
   "scripts-descriptions": {
     "fix": "Automatically fix coding standards issues where possible.",
     "lint": "Check files against coding standards."
+  },
+  "require": {
+    "wp-forge/wp-plugin-check": "^1.0"
   }
 }

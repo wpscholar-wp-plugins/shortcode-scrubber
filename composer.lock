@@ -4,8 +4,42 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b9d500c8acda613dccee10cd4eaec750",
-    "packages": [],
+    "content-hash": "d8f9b89cadcc063dfe01e6b01071a271",
+    "packages": [
+        {
+            "name": "wp-forge/wp-plugin-check",
+            "version": "1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/wp-forge/wp-plugin-check.git",
+                "reference": "3497a1bc557ae1108c11fb6cc694ae97ae2d4fc6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/wp-forge/wp-plugin-check/zipball/3497a1bc557ae1108c11fb6cc694ae97ae2d4fc6",
+                "reference": "3497a1bc557ae1108c11fb6cc694ae97ae2d4fc6",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "wp-plugin-check.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Micah Wood",
+                    "homepage": "https://wpscholar.com"
+                }
+            ],
+            "description": "Check if a WordPress plugin is compatible with the current environment.",
+            "time": "2020-04-20T16:55:41+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "dealerdirect/phpcodesniffer-composer-installer",

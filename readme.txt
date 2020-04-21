@@ -5,7 +5,7 @@ Tags: shortcode
 Requires PHP: 5.6
 Requires at least: 3.2
 Tested up to: 5.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -74,6 +74,9 @@ Note: You must have the 'manage_options' capability to see the 'Shortcodes' menu
 
 == Changelog ==
 
+= 1.0.2 =
+* Minor code refactor to use Composer packages.
+
 = 1.0.1 =
 * Tested in WordPress version 5.1
 * Updated code to abide by coding standards.
@@ -82,6 +85,9 @@ Note: You must have the 'manage_options' capability to see the 'Shortcodes' menu
 * Initial commit; tested in WordPress version 4.9.8
 
 == Upgrade Notice ==
+
+= 1.0.2 =
+* Minor code improvements.
 
 = 1.0.1 =
 * Tested in WordPress version 5.1
