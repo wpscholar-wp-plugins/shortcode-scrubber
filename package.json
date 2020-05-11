@@ -2,38 +2,38 @@
   "name": "shortcode-scrubber",
   "description": "A powerful tool for cleaning up shortcodes on your site and confidently managing plugins and themes that use shortcodes.",
   "private": true,
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "npx yamllint **/*.yml",
-    "i18n": "wpi18n addtextdomain && wpi18n makepot"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wpscholar-wp-plugins/shortcode-scrubber.git"
   },
   "author": "Micah Wood <micah@wpscholar.com> (https://wpscholar.com)",
-  "license": "GPL-3.0",
+  "license": "GPL-2.0-or-later",
   "bugs": {
     "url": "https://github.com/wpscholar-wp-plugins/shortcode-scrubber/issues"
   },
   "homepage": "https://github.com/wpscholar-wp-plugins/shortcode-scrubber#readme",
   "devDependencies": {
     "husky": "^4.2.5",
-    "lint-staged": "^10.1.5",
+    "lint-staged": "^10.2.2",
     "node-wp-i18n": "^1.2.3",
     "yaml-lint": "^1.2.4"
   },
+  "scripts": {
+    "i18n": "wpi18n addtextdomain && composer run i18n",
+    "lint": "yamllint --ignore=node_modules/** **/*.yml",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged && npx wpi18n addtextdomain && composer run i18n"
     }
   },
   "lint-staged": {
     "**/*.yml": [
-      "npm run lint"
+      "npx yamllint --ignore=node_modules/**"
     ],
     "**/*.php": [
-      "composer run-script lint"
+      "vendor/bin/phpcs --standard=WPScholar -s"
     ]
   }
 }
