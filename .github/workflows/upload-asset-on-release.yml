@@ -15,11 +15,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set Package Name
-        id: package
+      - name: Setup Workflow Context
+        id: workflow
+        working-directory: ${{ runner.temp }}
         env:
           REPO: ${{ github.repository }}
-        run: echo ::set-output name=PACKAGE::${REPO##*/}
+        run: |
+          mkdir dist
+          echo ::set-output name=DIST::${PWD}/dist
+          echo ::set-output name=PACKAGE::${REPO##*/}
 
       - name: PHP version
         run: php --version
@@ -43,23 +47,23 @@ jobs:
         run: composer install --no-progress --no-dev --optimize-autoloader
 
       - name: Prepare files
-        run: rsync -r --exclude-from=.distignore . ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}
+        run: rsync -r --exclude-from=.distignore . ${{ steps.workflow.outputs.DIST }}/{{ steps.workflow.outputs.PACKAGE }}
 
       - name: List Files
-        working-directory: ${{runner.temp}}
+        working-directory: ${{ steps.workflow.outputs.DIST }}
         run: find .
 
       - name: Create Zip
-        working-directory: ${{runner.temp}}
-        run: zip -r ${{ steps.package.outputs.PACKAGE }}.zip .
+        working-directory: ${{ steps.workflow.outputs.DIST }}
+        run: zip -r ${{ steps.workflow.outputs.PACKAGE }}.zip .
 
       - name: Upload Release Asset
-        id: upload-release-asset
+        working-directory: ${{ steps.workflow.outputs.DIST }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets{?name,label}
-          asset_path: ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}.zip
-          asset_name: ${{ steps.package.outputs.PACKAGE }}.zip
+          asset_path: ./${{ steps.workflow.outputs.PACKAGE }}.zip
+          asset_name: ${{ steps.workflow.outputs.PACKAGE }}.zip
           asset_content_type: application/zip

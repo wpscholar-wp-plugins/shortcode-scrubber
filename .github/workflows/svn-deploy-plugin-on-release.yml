@@ -12,6 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Setup Workflow Context
+        id: workflow
+        working-directory: ${{ runner.temp }}
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir dist
+          echo ::set-output name=DIST::${PWD}/dist
+          echo ::set-output name=PACKAGE::${REPO##*/}
+
       - name: PHP version
         run: php --version
 
@@ -34,22 +44,22 @@ jobs:
         run: composer install --no-progress --no-dev --optimize-autoloader
 
       - name: Prepare files
-        run: rsync -r --exclude-from=.distignore . ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}
+        run: rsync -r --exclude-from=.distignore . ${{ steps.workflow.outputs.DIST }}
 
       - name: Create WordPress.org assets directory
-        working-directory: ${{runner.temp}}
+        working-directory: ${{ steps.workflow.outputs.DIST }}
         run: mkdir .wporg
 
       - name: Copy WordPress.org assets
-        run: rsync -r .wporg/ ${{runner.temp}}/.wporg
+        run: rsync -r .wporg/ ${{ steps.workflow.outputs.DIST }}/.wporg
 
       - name: List Files
-        working-directory: ${{runner.temp}}
+        working-directory: ${{ steps.workflow.outputs.DIST }}
         run: find .
 
       - name: WordPress Plugin Deploy
         uses: 10up/action-wordpress-plugin-deploy@master
-        working-directory: ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}
+        working-directory: ${{ steps.workflow.outputs.DIST }}
         env:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
