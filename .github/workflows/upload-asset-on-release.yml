@@ -58,12 +58,11 @@ jobs:
         run: zip -r ${{ steps.workflow.outputs.PACKAGE }}.zip .
 
       - name: Upload Release Asset
-        working-directory: ${{ steps.workflow.outputs.DIST }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets{?name,label}
-          asset_path: ./${{ steps.workflow.outputs.PACKAGE }}.zip
+          asset_path: ${{ steps.workflow.outputs.DIST }}/${{ steps.workflow.outputs.PACKAGE }}.zip
           asset_name: ${{ steps.workflow.outputs.PACKAGE }}.zip
           asset_content_type: application/zip
