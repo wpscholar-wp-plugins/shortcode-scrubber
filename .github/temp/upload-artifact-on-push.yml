@@ -1,14 +1,13 @@
-name: Package Plugin
+name: Build Plugin
 
 on:
-  release:
-    types:
-      - created
-      - updated
+  push:
+    branches:
+      - master
 
 jobs:
-  deploy:
-    name: On Release
+  build:
+    name: On Push to Master
     runs-on: ubuntu-latest
     steps:
 
@@ -47,22 +46,13 @@ jobs:
         run: composer install --no-progress --no-dev --optimize-autoloader
 
       - name: Prepare files
-        run: rsync -r --exclude-from=.distignore . ${{ steps.workflow.outputs.DIST }}/{{ steps.workflow.outputs.PACKAGE }}
+        run: rsync -r --exclude-from=.distignore . ${{ steps.workflow.outputs.DIST }}
 
       - name: List Files
         working-directory: ${{ steps.workflow.outputs.DIST }}
         run: find .
 
-      - name: Create Zip
-        working-directory: ${{ steps.workflow.outputs.DIST }}
-        run: zip -r ${{ steps.workflow.outputs.PACKAGE }}.zip .
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v1
         with:
-          upload_url: https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets{?name,label}
-          asset_path: ${{ steps.workflow.outputs.DIST }}/${{ steps.workflow.outputs.PACKAGE }}.zip
-          asset_name: ${{ steps.workflow.outputs.PACKAGE }}.zip
-          asset_content_type: application/zip
+          name: ${{ steps.workflow.outputs.PACKAGE }}
+          path: ${{ steps.workflow.outputs.DIST }}
