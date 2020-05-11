@@ -2,17 +2,37 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Shortcode Scrubber 1.0.1\n"
-"Report-Msgid-Bugs-To: "
-"https://wordpress.org/support/plugin/shortcode-scrubber\n"
-"POT-Creation-Date: 2020-04-20 15:27:58+00:00\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2020-MO-DA HO:MI+ZONE\n"
+"Project-Id-Version: Shortcode Scrubber 1.0.3\n"
+"Report-Msgid-Bugs-To: https://github.com/wpscholar-wp-plugins/shortcode-scrubber/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"X-Generator: node-wp-i18n 1.2.3\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: shortcode-scrubber\n"
+
+#. Plugin Name of the plugin
+msgid "Shortcode Scrubber"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://wpscholar.com/wordpress-plugins/shortcode-scrubber/"
+msgstr ""
+
+#. Description of the plugin
+msgid "A powerful tool for cleaning up shortcodes on your site and confidently managing plugins and themes that use shortcodes."
+msgstr ""
+
+#. Author of the plugin
+msgid "Micah Wood"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://wpscholar.com"
+msgstr ""
 
 #: autoload/Shortcode.php:208
 msgid "WordPress"
@@ -27,13 +47,15 @@ msgid "Unknown"
 msgstr ""
 
 #: autoload/ShortcodeFilterListTable.php:153
-#: autoload/ShortcodeListTable.php:102 templates/form-select-shortcode.php:16
+#: autoload/ShortcodeListTable.php:102
+#: templates/form-select-shortcode.php:16
 msgid "Shortcode"
 msgstr ""
 
 #: autoload/ShortcodeFilterListTable.php:154
 #: autoload/ShortcodeFilterListTable.php:293
-#: autoload/ShortcodeListTable.php:375 autoload/ShortcodePostListTable.php:303
+#: autoload/ShortcodeListTable.php:375
+#: autoload/ShortcodePostListTable.php:303
 #: autoload/ShortcodeWidgetListTable.php:305
 msgid "Filter"
 msgstr ""
@@ -48,14 +70,16 @@ msgid "Manage"
 msgstr ""
 
 #: autoload/ShortcodeFilterListTable.php:203
-#: autoload/ShortcodeListTable.php:256 includes/hooks.php:59
-#: includes/hooks.php:60
+#: autoload/ShortcodeListTable.php:256
+#: includes/hooks.php:62
+#: includes/hooks.php:63
 msgid "Find Post Usages"
 msgstr ""
 
 #: autoload/ShortcodeFilterListTable.php:208
-#: autoload/ShortcodeListTable.php:257 includes/hooks.php:85
-#: includes/hooks.php:86
+#: autoload/ShortcodeListTable.php:257
+#: includes/hooks.php:88
+#: includes/hooks.php:89
 msgid "Find Widget Usages"
 msgstr ""
 
@@ -133,11 +157,13 @@ msgstr ""
 msgid "Theme"
 msgstr ""
 
-#: autoload/ShortcodeListTable.php:349 autoload/ShortcodeListTable.php:352
+#: autoload/ShortcodeListTable.php:349
+#: autoload/ShortcodeListTable.php:352
 msgid "Filter By Context"
 msgstr ""
 
-#: autoload/ShortcodeListTable.php:361 autoload/ShortcodeListTable.php:364
+#: autoload/ShortcodeListTable.php:361
+#: autoload/ShortcodeListTable.php:364
 msgid "Filter By Provider"
 msgstr ""
 
@@ -171,8 +197,8 @@ msgstr ""
 msgid "Y/m/d g:i:s a"
 msgstr ""
 
-#: autoload/ShortcodePostListTable.php:152
 #. translators: human time diff
+#: autoload/ShortcodePostListTable.php:152
 msgid "%s ago"
 msgstr ""
 
@@ -231,60 +257,36 @@ msgstr ""
 msgid "No widgets found."
 msgstr ""
 
-#: includes/functions.php:196 includes/functions.php:271
+#: includes/functions.php:196
+#: includes/functions.php:271
 msgid "Inactive Widgets"
 msgstr ""
 
-#: includes/hooks.php:32 includes/hooks.php:33
+#: includes/hooks.php:35
+#: includes/hooks.php:36
 msgid "Shortcodes"
 msgstr ""
 
-#: includes/hooks.php:48 includes/hooks.php:74 includes/hooks.php:100
-#: includes/hooks.php:140
+#: includes/hooks.php:51
+#: includes/hooks.php:77
+#: includes/hooks.php:103
+#: includes/hooks.php:143
 msgid "Number of items per page"
 msgstr ""
 
-#: includes/hooks.php:111 includes/hooks.php:112
+#: includes/hooks.php:114
+#: includes/hooks.php:115
 #: templates/shortcode-filters.php:12
 msgid "Shortcode Filters"
 msgstr ""
 
-#: includes/hooks.php:157 includes/hooks.php:158
+#: includes/hooks.php:160
+#: includes/hooks.php:161
 msgid "Manage Filters"
 msgstr ""
 
-#: includes/hooks.php:199
+#: includes/hooks.php:202
 msgid "Check for Shortcodes"
-msgstr ""
-
-#: includes/plugin-check.php:120
-#. translators: 1: plugin name 2: minimum required PHP version, current PHP
-#. version
-msgid ""
-"%1$s requires PHP version %2$s or later. You are currently running version "
-"%3$s."
-msgstr ""
-
-#: includes/plugin-check.php:121
-msgid " Please contact your web host about upgrading PHP."
-msgstr ""
-
-#: includes/plugin-check.php:136
-#. translators: 1: plugin name 2: required PHP extension
-msgid "%1$s requires the %2$s PHP extension."
-msgstr ""
-
-#: includes/plugin-check.php:152
-#. translators: 1: plugin name 2: minimum required WordPress version 3: current
-#. WordPress version
-msgid ""
-"%1$s requires WordPress version %2$s or later. You are currently running "
-"version %3$s."
-msgstr ""
-
-#: includes/plugin-check.php:190
-#. translators: plugin name
-msgid "The \"%s\" plugin has been deactivated."
 msgstr ""
 
 #: includes/shortcode-filters.php:13
@@ -316,8 +318,8 @@ msgstr ""
 msgid "Filter removed."
 msgstr ""
 
-#: templates/form-manage-shortcode.php:55
 #. translators: shortcode name
+#: templates/form-manage-shortcode.php:55
 msgid "Shortcode: %s"
 msgstr ""
 
@@ -334,9 +336,7 @@ msgid "Apply this filter permanently"
 msgstr ""
 
 #: templates/form-manage-shortcode.php:87
-msgid ""
-"This operation is irreversible! By selecting this option, you verify that "
-"you have a recent backup of your database."
+msgid "This operation is irreversible! By selecting this option, you verify that you have a recent backup of your database."
 msgstr ""
 
 #: templates/form-manage-shortcode.php:92
@@ -376,9 +376,7 @@ msgid "Manage Shortcode Filters"
 msgstr ""
 
 #: templates/shortcode-manage-filters.php:18
-msgid ""
-"Shortcode filters allow you control how specific shortcodes are rendered on "
-"your site. By default, they are temporary and easily reversible."
+msgid "Shortcode filters allow you control how specific shortcodes are rendered on your site. By default, they are temporary and easily reversible."
 msgstr ""
 
 #: templates/shortcode-post-usages.php:12
@@ -391,26 +389,4 @@ msgstr ""
 
 #: templates/shortcodes.php:12
 msgid "Registered Shortcodes"
-msgstr ""
-
-#. Plugin Name of the plugin/theme
-msgid "Shortcode Scrubber"
-msgstr ""
-
-#. Plugin URI of the plugin/theme
-msgid "https://wpscholar.com/wordpress-plugins/shortcode-scrubber/"
-msgstr ""
-
-#. Description of the plugin/theme
-msgid ""
-"A powerful tool for cleaning up shortcodes on your site and confidently "
-"managing plugins and themes that use shortcodes."
-msgstr ""
-
-#. Author of the plugin/theme
-msgid "Micah Wood"
-msgstr ""
-
-#. Author URI of the plugin/theme
-msgid "https://wpscholar.com"
 msgstr ""
