@@ -46,11 +46,11 @@ jobs:
       - name: Prepare Files
         working-directory: ${{ steps.workflow.outputs.DIST }}
         run: |
-          rsync -r --exclude-from=${{ github.workspace }}/.distignore ${{ github.workspace }} .
+          rsync -r --exclude-from=${{ github.workspace }}/.distignore ${{ github.workspace }}/* .
           mkdir .wporg
-          rsync -r ${{ github.workspace }}/.wporg .wporg
+          rsync -r ${{ github.workspace }}/.wporg/* .wporg
           rm -rf ${{ github.workspace }}/*
-          rsync -r . ${{ github.workspace }}
+          rsync -r ./* ${{ github.workspace }}
 
       - name: List Files
         run: find .
