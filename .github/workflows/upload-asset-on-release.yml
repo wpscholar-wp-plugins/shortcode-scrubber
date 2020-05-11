@@ -24,35 +24,6 @@ jobs:
       - name: PHP version
         run: php --version
 
-      - name: Set Node.js 12.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-
-      - name: Node version
-        run: node --version
-
-      - name: NPM version
-        run: npm --version
-
-      - name: Get npm cache directory
-        id: npm-cache
-        run: echo "::set-output name=dir::$(npm config get cache)"
-
-      - name: Cache node modules
-        uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: npm install
-        run: npm install
-
-      - name: Generate .pot file
-        run: npm run i18n
-
       - name: Validate composer.json and composer.lock
         run: composer validate
 
@@ -69,16 +40,18 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Install PHP Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest --no-dev --optimize-autoloader
+        run: composer install --no-progress --no-dev --optimize-autoloader
 
-      - name: Remove development files
-        run: .github/scripts/cleanup.sh
-
-      - name: Create Zip
-        run: zip -r ${{ steps.package.outputs.PACKAGE }}.zip .
+      - name: Prepare files
+        run: rsync -r --exclude-from=.distignore . ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}
 
       - name: List Files
-        run: ls -lah
+        working-directory: ${{runner.temp}}
+        run: find .
+
+      - name: Create Zip
+        working-directory: ${{runner.temp}}
+        run: zip -r ${{ steps.package.outputs.PACKAGE }}.zip .
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -87,6 +60,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets{?name,label}
-          asset_path: ./${{ steps.package.outputs.PACKAGE }}.zip
+          asset_path: ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}.zip
           asset_name: ${{ steps.package.outputs.PACKAGE }}.zip
           asset_content_type: application/zip

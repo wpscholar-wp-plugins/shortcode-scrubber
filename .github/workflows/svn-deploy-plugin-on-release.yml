@@ -31,16 +31,25 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Install PHP Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest --no-dev --optimize-autoloader
+        run: composer install --no-progress --no-dev --optimize-autoloader
 
-      - name: Remove development files
-        run: .github/scripts/cleanup.sh
+      - name: Prepare files
+        run: rsync -r --exclude-from=.distignore . ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}
+
+      - name: Create WordPress.org assets directory
+        working-directory: ${{runner.temp}}
+        run: mkdir .wporg
+
+      - name: Copy WordPress.org assets
+        run: rsync -r .wporg/ ${{runner.temp}}/.wporg
 
       - name: List Files
-        run: ls -lah
+        working-directory: ${{runner.temp}}
+        run: find .
 
       - name: WordPress Plugin Deploy
         uses: 10up/action-wordpress-plugin-deploy@master
+        working-directory: ${{runner.temp}}/${{ steps.package.outputs.PACKAGE }}
         env:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
