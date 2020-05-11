@@ -28,3 +28,6 @@ jobs:
 
       - name: Home Directory ENV
         run: echo ${HOME}
+
+      - name: List Files
+        run: find ${HOME}
