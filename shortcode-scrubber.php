@@ -3,7 +3,7 @@
  * Plugin Name: Shortcode Scrubber
  * Plugin URI: https://wpscholar.com/wordpress-plugins/shortcode-scrubber/
  * Description: A powerful tool for cleaning up shortcodes on your site and confidently managing plugins and themes that use shortcodes.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Micah Wood
  * Author URI:  https://wpscholar.com
  * Requires at least: 3.2
