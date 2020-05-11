@@ -1,4 +1,4 @@
-name: Test Context
+name: Build Plugin
 
 on:
   push:
@@ -14,20 +14,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Current Directory
-        run: echo ${PWD}
+      - name: Setup Workflow Context
+        id: workflow
+        working-directory: ${{ runner.temp }}
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir dist
+          echo ::set-output name=DIST::${PWD}/dist
+          echo ::set-output name=PACKAGE::${REPO##*/}
 
-      - name: Temp Directory
-        run: echo ${{ runner.temp }}
+      - name: PHP version
+        run: php --version
 
-      - name: Workspace Directory
-        run: echo ${{ github.workspace }}
+      - name: Validate composer.json and composer.lock
+        run: composer validate
 
-      - name: Workspace Directory ENV
-        run: echo ${GITHUB_WORKSPACE}
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-      - name: Home Directory ENV
-        run: echo ${HOME}
+      - name: Cache Composer vendor directory
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install PHP Dependencies
+        run: composer install --no-progress --no-dev --optimize-autoloader
+
+      - name: Prepare files
+        run: rsync -r --exclude-from=.distignore . ${{ steps.workflow.outputs.DIST }}
 
       - name: List Files
-        run: find ${HOME}
+        working-directory: ${{ steps.workflow.outputs.DIST }}
+        run: find .
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.workflow.outputs.PACKAGE }}
+          path: ${{ steps.workflow.outputs.DIST }}

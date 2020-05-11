@@ -1,18 +1,16 @@
-name: Build Plugin
-
+name: Deploy to WordPress.org
 on:
-  push:
-    branches:
-      - master
+  release:
+    types:
+      - created
+      - edited
 
 jobs:
-  build:
-    name: On Push to Master
+  deploy:
+    name: On Release
     runs-on: ubuntu-latest
     steps:
-
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@master
 
       - name: Setup Workflow Context
         id: workflow
@@ -45,14 +43,21 @@ jobs:
       - name: Install PHP Dependencies
         run: composer install --no-progress --no-dev --optimize-autoloader
 
-      - name: Prepare files
-        run: rsync -r --exclude-from=.distignore . ${{ steps.workflow.outputs.DIST }}
+      - name: Prepare Files
+        working-directory: ${{ steps.workflow.outputs.DIST }}
+        run: |
+          rsync -r --exclude-from=${{ github.workspace }}/.distignore ${{ github.workspace }} .
+          mkdir .wporg
+          rsync -r ${{ github.workspace }}/.wporg .wporg
+          rm -rf ${{ github.workspace }}/*
+          rsync -r . ${{ github.workspace }}
 
       - name: List Files
-        working-directory: ${{ steps.workflow.outputs.DIST }}
         run: find .
 
-      - uses: actions/upload-artifact@v1
-        with:
-          name: ${{ steps.workflow.outputs.PACKAGE }}
-          path: ${{ steps.workflow.outputs.DIST }}
+      - name: WordPress Plugin Deploy
+        uses: 10up/action-wordpress-plugin-deploy@master
+        env:
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          ASSETS_DIR: .wporg
