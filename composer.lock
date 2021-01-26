@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5c5e64090795eebba692342807621d64",
+    "content-hash": "9765c2fefa21eeef0945aa226629fd3c",
     "packages": [
         {
             "name": "wp-forge/wp-plugin-check",
@@ -38,45 +38,6 @@
             ],
             "description": "Check if a WordPress plugin is compatible with the current environment.",
             "time": "2020-04-20T16:55:41+00:00"
-        },
-        {
-            "name": "wpscholar/github-archive-installer",
-            "version": "1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/wpscholar/github-archive-installer.git",
-                "reference": "c3e325f345e2ca3e3a110294e8914a747b16150d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/wpscholar/github-archive-installer/zipball/c3e325f345e2ca3e3a110294e8914a747b16150d",
-                "reference": "c3e325f345e2ca3e3a110294e8914a747b16150d",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^1.1 || ^2.0"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "wpscholar\\Composer\\GithubArchiveInstaller"
-            },
-            "autoload": {
-                "psr-4": {
-                    "wpscholar\\Composer\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Micah Wood",
-                    "email": "micah@wpscholar.com"
-                }
-            ],
-            "description": "A custom Composer installer that will install a dependency from a GitHub release archive .zip file when installing from distribution.",
-            "time": "2020-04-24T14:36:31+00:00"
         }
     ],
     "packages-dev": [
@@ -973,5 +934,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }

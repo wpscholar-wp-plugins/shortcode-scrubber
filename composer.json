@@ -14,8 +14,7 @@
         "issues": "https://github.com/wpscholar-wp-plugins/shortcode-scrubber/issues"
     },
     "require": {
-        "wp-forge/wp-plugin-check": "^1.0",
-        "wpscholar/github-archive-installer": "^1.1"
+        "wp-forge/wp-plugin-check": "^1.0"
     },
     "require-dev": {
         "wpscholar/phpcs-standards-wpscholar": "^1.0",
